@@ -115,12 +115,12 @@ export default function Scene() {
 
       <SpaceBackdrop />
 
-      <Environment preset="studio" environmentIntensity={0.28} />
+      <Environment preset="studio" environmentIntensity={1.0} />
 
       <hemisphereLight
         color="#c8d8ec"
         groundColor="#1a2838"
-        intensity={0.35}
+        intensity={1.35}
       />
 
       <ambientLight intensity={0.18} color="#b0c4dc" />

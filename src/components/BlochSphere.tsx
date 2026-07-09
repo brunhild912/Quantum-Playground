@@ -75,6 +75,7 @@ function SphereGrid() {
   const lineColor = '#8ab4cc'
   const lineOpacity = 0.28
 
+
   return (
     <group>
       <Line points={equator} color={lineColor} transparent opacity={lineOpacity} />
@@ -99,21 +100,31 @@ function SphereGrid() {
 
 export default function BlochSphere() {
   const groupRef = useRef<THREE.Group>(null)
-  const fresnelMaterial = useMemo(() => createFresnelMaterial(), [])
+  const fresnelMaterial = useMemo(
+    () => createFresnelMaterial(),
+    [],
+)
 
-  useFrame((state) => {
-    const group = groupRef.current
-    if (!group) return
+useFrame((state) => {
+  const group = groupRef.current
+  if (!group) return
 
-    group.position.y =
-      SPHERE_CENTER_Y + meditativeFloat(state.clock.elapsedTime, 0.07)
-  })
+  const t = state.clock.elapsedTime
+
+  group.position.y =
+      SPHERE_CENTER_Y + meditativeFloat(t, 0.07)
+
+  group.rotation.y = t * 0.08
+  group.rotation.x = Math.sin(t * 0.25) * 0.08
+  group.rotation.z = Math.sin(t * 0.17) * 0.03
+})
 
   return (
     <group ref={groupRef}>
       <mesh renderOrder={0}>
         <sphereGeometry args={[BLOCH_RADIUS * 0.18, 32, 32]} />
         <meshBasicMaterial
+          
           color="#a0c8e4"
           transparent
           opacity={0.04}
@@ -124,6 +135,7 @@ export default function BlochSphere() {
       <mesh renderOrder={1}>
         <sphereGeometry args={[BLOCH_RADIUS * 0.92, 48, 48]} />
         <meshBasicMaterial
+          
           color="#5a8aaa"
           transparent
           opacity={0.025}
@@ -135,6 +147,7 @@ export default function BlochSphere() {
       <mesh renderOrder={2}>
         <sphereGeometry args={[BLOCH_RADIUS, 96, 96]} />
         <meshPhysicalMaterial
+          
           color="#b4d0e4"
           transparent
           opacity={0.2}

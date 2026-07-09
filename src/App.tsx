@@ -1,4 +1,5 @@
 import LandingOverlay from './components/LandingOverlay'
+import OpeningCurtain from './components/OpeningCurtain'
 import Scene from './components/Scene'
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
       </section>
 
       <LandingOverlay />
+      <OpeningCurtain />
     </div>
   )
 }
