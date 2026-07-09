@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { Line } from '@react-three/drei'
 import { meditativeFloat } from '../lib/easing'
 import { createFresnelMaterial } from '../lib/fresnelMaterial'
+import { getOpeningSequence, getSequenceElapsed } from '../lib/openingSequence'
 import { SPHERE_CENTER_Y } from '../lib/sceneConstants'
 
 export const BLOCH_RADIUS = 1.12
@@ -46,19 +47,34 @@ function createCirclePoints(
   return points
 }
 
+const LINE_OPACITIES = [0.28, 0.238, 0.238, 0.196, 0.154, 0.154] as const
+
+function applyGridOpacity(grid: THREE.Group, reveal: number) {
+  let lineIndex = 0
+
+  grid.traverse((child) => {
+    const material = (child as THREE.Object3D & { material?: THREE.Material })
+      .material
+
+    if (!material || !('opacity' in material)) return
+
+    if (material.userData.baseOpacity === undefined) {
+      const fallback = LINE_OPACITIES[lineIndex] ?? 0.28
+      material.userData.baseOpacity =
+        typeof material.opacity === 'number' ? material.opacity : fallback
+      lineIndex += 1
+    }
+
+    const baseOpacity = material.userData.baseOpacity as number
+    material.opacity = baseOpacity * reveal
+    material.transparent = true
+  })
+}
+
 function SphereGrid() {
-  const equator = useMemo(
-    () => createCirclePoints(LINE_RADIUS, SEGMENTS, 'xz'),
-    [],
-  )
-  const meridianX = useMemo(
-    () => createCirclePoints(LINE_RADIUS, SEGMENTS, 'xy'),
-    [],
-  )
-  const meridianY = useMemo(
-    () => createCirclePoints(LINE_RADIUS, SEGMENTS, 'yz'),
-    [],
-  )
+  const equator = useMemo(() => createCirclePoints(LINE_RADIUS, SEGMENTS, 'xz'), [])
+  const meridianX = useMemo(() => createCirclePoints(LINE_RADIUS, SEGMENTS, 'xy'), [])
+  const meridianY = useMemo(() => createCirclePoints(LINE_RADIUS, SEGMENTS, 'yz'), [])
   const meridianZ = useMemo(
     () => createCirclePoints(LINE_RADIUS, SEGMENTS, 'xy', Math.PI / 2),
     [],
@@ -74,7 +90,6 @@ function SphereGrid() {
 
   const lineColor = '#8ab4cc'
   const lineOpacity = 0.28
-
 
   return (
     <group>
@@ -98,36 +113,51 @@ function SphereGrid() {
   )
 }
 
-export default function BlochSphere() {
+export default function BlochSphere({ focus }: { focus: number }) {
   const groupRef = useRef<THREE.Group>(null)
-  const fresnelMaterial = useMemo(
-    () => createFresnelMaterial(),
-    [],
-)
+  const gridRef = useRef<THREE.Group>(null)
 
-useFrame((state) => {
-  const group = groupRef.current
-  if (!group) return
+  const coreRef = useRef<THREE.MeshBasicMaterial>(null)
+  const atmosphereRef = useRef<THREE.MeshBasicMaterial>(null)
+  const glassRef = useRef<THREE.MeshPhysicalMaterial>(null)
 
-  const t = state.clock.elapsedTime
+  const fresnelMaterial = useMemo(() => {
+    const material = createFresnelMaterial()
+    material.uniforms.uIntensity!.value = 0
+    return material
+  }, [])
 
-  group.position.y =
-      SPHERE_CENTER_Y + meditativeFloat(t, 0.07)
+  useFrame((state) => {
+    const group = groupRef.current
+    if (!group) return
 
-  group.rotation.y = t * 0.08
-  group.rotation.x = Math.sin(t * 0.25) * 0.08
-  group.rotation.z = Math.sin(t * 0.17) * 0.03
-})
+    const t = state.clock.elapsedTime
+    const { sphere: reveal } = getOpeningSequence(getSequenceElapsed())
+    const focusScale = 1 + Math.min(1, Math.max(0, focus)) * 0.12
+
+    group.position.y = SPHERE_CENTER_Y + meditativeFloat(t, 0.1) * reveal
+    group.rotation.y = t * 0.08
+    group.rotation.x = Math.sin(t * 0.25) * 0.08
+    group.rotation.z = Math.sin(t * 0.17) * 0.03
+    group.scale.setScalar(focusScale)
+
+    if (coreRef.current) coreRef.current.opacity = 0.04 * reveal
+    if (atmosphereRef.current) atmosphereRef.current.opacity = 0.025 * reveal
+    if (glassRef.current) glassRef.current.opacity = 0.2 * reveal
+    fresnelMaterial.uniforms.uIntensity!.value = 0.22 * reveal
+
+    if (gridRef.current) applyGridOpacity(gridRef.current, reveal)
+  })
 
   return (
     <group ref={groupRef}>
       <mesh renderOrder={0}>
         <sphereGeometry args={[BLOCH_RADIUS * 0.18, 32, 32]} />
         <meshBasicMaterial
-          
+          ref={coreRef}
           color="#a0c8e4"
           transparent
-          opacity={0.04}
+          opacity={0}
           depthWrite={false}
         />
       </mesh>
@@ -135,10 +165,10 @@ useFrame((state) => {
       <mesh renderOrder={1}>
         <sphereGeometry args={[BLOCH_RADIUS * 0.92, 48, 48]} />
         <meshBasicMaterial
-          
+          ref={atmosphereRef}
           color="#5a8aaa"
           transparent
-          opacity={0.025}
+          opacity={0}
           side={THREE.BackSide}
           depthWrite={false}
         />
@@ -147,10 +177,10 @@ useFrame((state) => {
       <mesh renderOrder={2}>
         <sphereGeometry args={[BLOCH_RADIUS, 96, 96]} />
         <meshPhysicalMaterial
-          
+          ref={glassRef}
           color="#b4d0e4"
           transparent
-          opacity={0.2}
+          opacity={0}
           roughness={0.04}
           metalness={0.08}
           transmission={0.96}
@@ -172,7 +202,7 @@ useFrame((state) => {
         <primitive object={fresnelMaterial} attach="material" />
       </mesh>
 
-      <group renderOrder={4}>
+      <group ref={gridRef} renderOrder={4}>
         <SphereGrid />
       </group>
     </group>

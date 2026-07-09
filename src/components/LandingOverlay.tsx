@@ -1,4 +1,10 @@
-export default function LandingOverlay() {
+export default function LandingOverlay({
+  onBeginJourney,
+  hidden,
+}: {
+  onBeginJourney: () => void
+  hidden: boolean
+}) {
   return (
     <>
       <nav className="mission-nav" aria-label="Mission">
@@ -6,7 +12,7 @@ export default function LandingOverlay() {
         <p className="mission-title reveal-fade reveal-genesis">Genesis</p>
       </nav>
 
-      <section className="content-stage">
+      <section className={hidden ? 'content-stage landing-hidden' : 'content-stage'}>
         <h1 className="hero-title reveal-fade reveal-title">Quantum Playground</h1>
 
         <p className="tagline reveal-fade reveal-tagline">See the Invisible.</p>
@@ -16,7 +22,11 @@ export default function LandingOverlay() {
           mechanics.
         </p>
 
-        <button type="button" className="begin-button reveal-fade reveal-button">
+        <button
+          type="button"
+          className="begin-button reveal-fade reveal-button"
+          onClick={onBeginJourney}
+        >
           Begin Journey
         </button>
       </section>

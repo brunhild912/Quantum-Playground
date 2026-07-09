@@ -120,6 +120,60 @@ body {
   overflow: hidden;
 }
 
+.landing-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.content-stage {
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.control-panel {
+  position: fixed;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  min-width: 11.5rem;
+  padding: 0.9rem 0.95rem;
+  border-radius: 0.9rem;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+@media (min-width: 640px) {
+  .control-panel {
+    right: 1.75rem;
+    min-width: 12.5rem;
+  }
+}
+
+.control-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.control-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(209, 213, 219, 0.55);
+}
+
+.control-value {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .opening-curtain {
   position: fixed;
   inset: 0;

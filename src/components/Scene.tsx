@@ -1,27 +1,34 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import * as THREE from 'three'
 import { SPHERE_CENTER_Y } from '../lib/sceneConstants'
+import { easeInOutCubic } from '../lib/easing'
 import BlochSphere from './BlochSphere'
 import SceneEffects from './SceneEffects'
 import SpaceBackdrop from './SpaceBackdrop'
 import StarField from './StarField'
+import { useJourney, type JourneyPhase } from '../state/journeyContext'
 
 const BASE_CAMERA: [number, number, number] = [0, 0.1, 6.4]
+const FOCUS_CAMERA: [number, number, number] = [0, 0.08, 4.45]
+const TRANSITION_MS = 2600
 
 function CameraDrift({
   controlsRef,
   interacting,
+  enabled,
 }: {
   controlsRef: React.RefObject<OrbitControlsImpl | null>
   interacting: React.RefObject<boolean>
+  enabled: boolean
 }) {
   const { camera } = useThree()
   const driftOffset = useRef(new THREE.Vector3())
 
   useFrame((state) => {
+    if (!enabled) return
     camera.position.sub(driftOffset.current)
 
     if (interacting.current) {
@@ -50,8 +57,10 @@ function CameraDrift({
 
 function SceneControls({
   controlsRef,
+  enabled,
 }: {
   controlsRef: React.RefObject<OrbitControlsImpl | null>
+  enabled: boolean
 }) {
   const interacting = useRef(false)
 
@@ -79,6 +88,7 @@ function SceneControls({
     <>
       <OrbitControls
         ref={controlsRef}
+        enabled={enabled}
         enableDamping
         dampingFactor={0.08}
         minDistance={3.8}
@@ -90,13 +100,60 @@ function SceneControls({
         enablePan={false}
         target={[0, SPHERE_CENTER_Y, 0]}
       />
-      <CameraDrift controlsRef={controlsRef} interacting={interacting} />
+      <CameraDrift controlsRef={controlsRef} interacting={interacting} enabled={enabled} />
     </>
   )
 }
 
-export default function Scene() {
+function TransitionRig({
+  phase,
+  controlsRef,
+}: {
+  phase: JourneyPhase
+  controlsRef: React.RefObject<OrbitControlsImpl | null>
+}) {
+  const { camera } = useThree()
+  const { transitionStartMsRef, enterPlayground } = useJourney()
+  const startPos = useRef(new THREE.Vector3(...BASE_CAMERA))
+  const startQuat = useRef(new THREE.Quaternion())
+
+  const focusPos = useMemo(() => new THREE.Vector3(...FOCUS_CAMERA), [])
+
+  useEffect(() => {
+    if (phase !== 'transition') return
+    startPos.current.copy(camera.position)
+    startQuat.current.copy(camera.quaternion)
+  }, [phase, camera])
+
+  useFrame(() => {
+    if (phase !== 'transition') return
+    const startMs = transitionStartMsRef.current
+    if (startMs == null) return
+
+    const tRaw = (performance.now() - startMs) / TRANSITION_MS
+    const t = easeInOutCubic(Math.min(1, Math.max(0, tRaw)))
+
+    camera.position.lerpVectors(startPos.current, focusPos, t)
+    camera.lookAt(0, SPHERE_CENTER_Y, 0)
+
+    const controls = controlsRef.current
+    if (controls) {
+      controls.target.set(0, SPHERE_CENTER_Y, 0)
+      controls.update()
+    }
+
+    if (tRaw >= 1) {
+      enterPlayground()
+    }
+  }, 3)
+
+  return null
+}
+
+export default function Scene({ phase }: { phase: JourneyPhase }) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
+  const controlsEnabled = phase === 'playground' || phase === 'landing'
+  const focus = phase === 'transition' ? 1 : 0
 
   return (
     <Canvas
@@ -115,7 +172,7 @@ export default function Scene() {
 
       <SpaceBackdrop />
 
-      <Environment preset="studio" environmentIntensity={1.0} />
+      <Environment preset="studio" environmentIntensity={10.0} />
 
       <hemisphereLight
         color="#c8d8ec"
@@ -144,7 +201,7 @@ export default function Scene() {
         angle={0.55}
         penumbra={1}
         distance={18}
-        decay={2}
+        decay={20}
       />
 
       <pointLight
@@ -155,8 +212,9 @@ export default function Scene() {
       />
 
       <StarField />
-      <BlochSphere />
-      <SceneControls controlsRef={controlsRef} />
+      <BlochSphere focus={focus} />
+      <SceneControls controlsRef={controlsRef} enabled={controlsEnabled} />
+      <TransitionRig phase={phase} controlsRef={controlsRef} />
       <SceneEffects />
     </Canvas>
   )

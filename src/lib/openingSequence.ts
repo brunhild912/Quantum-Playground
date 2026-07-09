@@ -26,20 +26,20 @@ export type OpeningSequenceState = {
 /** Documentary opening timeline — shared by WebGL and CSS. */
 export const OPENING_TIMELINE = {
   black: { start: 0, duration: 1.4 },
-  stars: { start: 0.6, duration: 2.8 },
-  sphere: { start: 1.8, duration: 2.8 },
-  textPause: 5.6,
-  mission: { delay: 5.6, duration: 0.95 },
-  genesis: { delay: 6.7, duration: 0.95 },
-  title: { delay: 7.8, duration: 1.05 },
-  tagline: { delay: 9.0, duration: 0.95 },
-  body: { delay: 10.1, duration: 0.95 },
-  button: { delay: 11.2, duration: 1.05 },
+  stars: { start: 0.4, duration: 2.8 },
+  sphere: { start: 1.5, duration: 2.8 },
+  textPause: 2.0,
+  mission: { delay: 3.6, duration: 0.95 },
+  genesis: { delay: 4.7, duration: 0.95 },
+  title: { delay: 5.8, duration: 1.05 },
+  tagline: { delay: 7.0, duration: 0.95 },
+  body: { delay: 8.1, duration: 0.95 },
+  button: { delay: 9.2, duration: 1.05 },
 } as const
 
 export function getOpeningSequence(elapsed: number): OpeningSequenceState {
   return {
-    black: 1 - fade(elapsed, OPENING_TIMELINE.black.start, OPENING_TIMELINE.black.duration),
+    black: fade(elapsed, OPENING_TIMELINE.black.start, OPENING_TIMELINE.black.duration),
     stars: fade(elapsed, OPENING_TIMELINE.stars.start, OPENING_TIMELINE.stars.duration),
     sphere: fade(elapsed, OPENING_TIMELINE.sphere.start, OPENING_TIMELINE.sphere.duration),
   }
