@@ -1,13 +1,18 @@
 import LandingOverlay from './components/LandingOverlay'
+import ObservationLog from './components/ObservationLog'
 import OpeningCurtain from './components/OpeningCurtain'
 import ControlPanel from './components/ControlPanel'
 import Scene from './components/Scene'
+import { level1MissionConsole } from './content/level1ObservationLog'
 import { JourneyProvider } from './state/JourneyProvider'
 import { useJourney } from './state/journeyContext'
+import { useQubitState } from './hooks/useQubitState'
+import { qubitStateExplanation, qubitStateLabel } from './lib/qubitState'
 import { useEffect, useMemo } from 'react'
 
 function AppInner() {
   const { phase, beginJourney } = useJourney()
+  const { theta, phi, setTheta, setPhi } = useQubitState()
 
   // Disable scroll (wheel/touch) during the camera transition.
   useEffect(() => {
@@ -23,7 +28,8 @@ function AppInner() {
     }
   }, [phase])
 
-  const quantumState = useMemo(() => ({ ket: '|0⟩' }), [])
+  const stateLabel = useMemo(() => qubitStateLabel(theta), [theta])
+  const stateExplanation = useMemo(() => qubitStateExplanation(theta), [theta])
 
   return (
     <div className="app-shell">
@@ -31,11 +37,35 @@ function AppInner() {
       <div className="vignette pointer-events-none absolute inset-0" />
 
       <section className="hero-stage" aria-label="Bloch Sphere exhibit">
-        <Scene phase={phase} />
+        <Scene
+          phase={phase}
+          qubit={phase === 'playground' ? { theta, phi } : null}
+        />
       </section>
 
       <LandingOverlay onBeginJourney={beginJourney} hidden={phase !== 'landing'} />
-      {phase === 'playground' ? <ControlPanel state={quantumState} /> : null}
+
+      {phase === 'playground' ? (
+        <section className="playground-stage" aria-label="Observation Log">
+          <ObservationLog
+            content={level1MissionConsole}
+            liveReadout={{
+              label: stateLabel,
+              explanation: stateExplanation,
+            }}
+          />
+        </section>
+      ) : null}
+
+      {phase === 'playground' ? (
+        <ControlPanel
+          stateLabel={stateLabel}
+          theta={theta}
+          phi={phi}
+          onThetaChange={setTheta}
+          onPhiChange={setPhi}
+        />
+      ) : null}
       <OpeningCurtain />
     </div>
   )

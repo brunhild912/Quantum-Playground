@@ -150,7 +150,13 @@ function TransitionRig({
   return null
 }
 
-export default function Scene({ phase }: { phase: JourneyPhase }) {
+export default function Scene({
+  phase,
+  qubit,
+}: {
+  phase: JourneyPhase
+  qubit?: { theta: number; phi: number } | null
+}) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const controlsEnabled = phase === 'playground' || phase === 'landing'
   const focus = phase === 'transition' ? 1 : 0
@@ -212,7 +218,7 @@ export default function Scene({ phase }: { phase: JourneyPhase }) {
       />
 
       <StarField />
-      <BlochSphere focus={focus} />
+      <BlochSphere focus={focus} qubit={qubit} />
       <SceneControls controlsRef={controlsRef} enabled={controlsEnabled} />
       <TransitionRig phase={phase} controlsRef={controlsRef} />
       <SceneEffects />

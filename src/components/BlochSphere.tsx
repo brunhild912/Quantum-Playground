@@ -6,6 +6,7 @@ import { meditativeFloat } from '../lib/easing'
 import { createFresnelMaterial } from '../lib/fresnelMaterial'
 import { getOpeningSequence, getSequenceElapsed } from '../lib/openingSequence'
 import { SPHERE_CENTER_Y } from '../lib/sceneConstants'
+import QubitArrow from './QubitArrow'
 
 export const BLOCH_RADIUS = 1.12
 const SEGMENTS = 160
@@ -113,7 +114,13 @@ function SphereGrid() {
   )
 }
 
-export default function BlochSphere({ focus }: { focus: number }) {
+export default function BlochSphere({
+  focus,
+  qubit,
+}: {
+  focus: number
+  qubit?: { theta: number; phi: number } | null
+}) {
   const groupRef = useRef<THREE.Group>(null)
   const gridRef = useRef<THREE.Group>(null)
 
@@ -205,6 +212,10 @@ export default function BlochSphere({ focus }: { focus: number }) {
       <group ref={gridRef} renderOrder={4}>
         <SphereGrid />
       </group>
+
+      {qubit ? (
+        <QubitArrow theta={qubit.theta} phi={qubit.phi} radius={BLOCH_RADIUS} />
+      ) : null}
     </group>
   )
 }
