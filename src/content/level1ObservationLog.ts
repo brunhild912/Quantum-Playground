@@ -1,62 +1,60 @@
 import type { MissionConsoleContent } from './observationLogTypes'
 
 export const level1MissionConsole: MissionConsoleContent = {
-  collapsedHint: 'Mission Brief available.',
-  collapsedSubhint: 'Continue your exploration.',
+  missionName: 'Project Bloch',
+  status: 'Experiment Running',
+  collapsedTeaser: 'Mission briefing available — tap to open the console.',
   cards: [
     {
       id: 'mission-brief',
-      title: 'Mission Brief',
-      tagline: "What you're seeing",
+      title: 'MISSION BRIEF',
+      icon: 'brief',
       kind: 'static',
-      paragraphs: [
-        'Imagine the arrow as a compass.',
-        'A normal compass points across Earth. This one points anywhere in 3D space.',
-        'The arrow represents a qubit. Every direction represents a different quantum state.',
+      lines: [
+        "Today's mission: understand the world's smallest unit of quantum information.",
+        'Your instrument is the Bloch Sphere. The arrow represents a single qubit.',
+        'Move the arrow. Watch how its direction changes. Build an intuition before learning the mathematics.',
+      ],
+    },
+    {
+      id: 'what-youre-seeing',
+      title: "WHAT YOU'RE SEEING",
+      icon: 'seeing',
+      kind: 'static',
+      lines: [
+        'Imagine dropping two stones into a pond. Their waves overlap to create a new pattern—and quantum objects behave in a similar way.',
+        'Instead of water waves, they have probability waves.',
+        "The arrow you're moving does not show a tiny spinning particle. It visualizes the mathematical state of a qubit. Every direction on the sphere represents a different quantum state.",
       ],
     },
     {
       id: 'discovery',
-      title: 'Discovery',
-      tagline: 'Why this is special',
+      title: 'DISCOVERY',
+      icon: 'discovery',
+      kind: 'discovery',
+    },
+    {
+      id: 'why-special',
+      title: 'WHY SCIENTISTS CARE',
+      icon: 'special',
       kind: 'static',
-      paragraphs: [
-        'Think about a light switch. It has only two positions. OFF. ON.',
-        'A normal computer stores information exactly like that. Only 0 or 1.',
-        'A qubit is different. Instead of being limited to only two positions, it can point anywhere on the Bloch Sphere.',
-        'That extra freedom allows quantum algorithms to manipulate probability amplitudes and use quantum interference, enabling certain problems to be solved far more efficiently than classical computers.',
-        'This is one of the fundamental ideas behind quantum computing.',
+      lines: [
+        'A normal computer bit is like a light switch: either OFF or ON. A qubit is different.',
+        'Instead of choosing only one option, quantum mechanics allows it to be described as a combination of possibilities until it is measured. The Bloch Sphere lets you explore every possible combination as a single point on the sphere.',
+        'This extra freedom is one reason quantum computers can solve certain problems differently from classical computers.',
+        "Scientists don't use superposition because it's mysterious—they use it because nature behaves this way.",
+        'Learning to visualize it is the first step toward understanding quantum computing.',
       ],
     },
     {
       id: 'experiment',
-      title: 'Experiment',
-      tagline: 'Try it yourself',
+      title: 'YOUR MISSION',
+      icon: 'experiment',
       kind: 'static',
-      paragraphs: [
-        'Move θ (theta). Watch the arrow travel between the North Pole and South Pole.',
-        'Move φ (phi). Watch it rotate around the sphere.',
-        'Together they let you point the qubit in any direction.',
-        'Take a moment to experiment. There is no wrong answer. Every direction represents a valid quantum state.',
-      ],
-    },
-    {
-      id: 'live-readout',
-      title: 'Live Readout',
-      tagline: 'Current State',
-      kind: 'live-readout',
-    },
-    {
-      id: 'next-mystery',
-      title: 'Next Mystery',
-      tagline: 'A teaser for the next level',
-      kind: 'teaser',
-      paragraphs: [
-        "You've discovered that a qubit can point in any direction.",
-        'But here\'s the strange part.',
-        'When scientists measure a qubit, they never observe "halfway." They only ever observe 0 or 1.',
-        'How can something exist between the two, yet only ever be measured as one of them?',
-        'That mystery will be explored in the next mission.',
+      lines: [
+        'Rotate θ and watch the arrow travel between |0⟩ and |1⟩.',
+        'Then rotate φ and notice how it moves around the sphere while staying at the same latitude.',
+        'Try reaching the north pole. Try reaching the south pole. Can you hold the arrow exactly halfway?',
       ],
     },
   ],

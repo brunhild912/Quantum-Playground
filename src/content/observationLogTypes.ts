@@ -1,33 +1,30 @@
+export type MissionCardIcon =
+  | 'brief'
+  | 'seeing'
+  | 'discovery'
+  | 'special'
+  | 'experiment'
+
 export type StaticMissionCard = {
   id: string
   title: string
-  tagline: string
+  icon: MissionCardIcon
   kind: 'static'
-  paragraphs: string[]
+  lines: string[]
 }
 
-export type LiveReadoutMissionCard = {
+export type DynamicMissionCard = {
   id: string
   title: string
-  tagline: string
-  kind: 'live-readout'
+  icon: MissionCardIcon
+  kind: 'discovery'
 }
 
-export type TeaserMissionCard = {
-  id: string
-  title: string
-  tagline: string
-  kind: 'teaser'
-  paragraphs: string[]
-}
-
-export type MissionCardDefinition =
-  | StaticMissionCard
-  | LiveReadoutMissionCard
-  | TeaserMissionCard
+export type MissionCardDefinition = StaticMissionCard | DynamicMissionCard
 
 export type MissionConsoleContent = {
-  collapsedHint: string
-  collapsedSubhint: string
+  missionName: string
+  status: string
+  collapsedTeaser: string
   cards: MissionCardDefinition[]
 }

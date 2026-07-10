@@ -7,7 +7,7 @@ import { level1MissionConsole } from './content/level1ObservationLog'
 import { JourneyProvider } from './state/JourneyProvider'
 import { useJourney } from './state/journeyContext'
 import { useQubitState } from './hooks/useQubitState'
-import { qubitStateExplanation, qubitStateLabel } from './lib/qubitState'
+import { qubitStateLabel } from './lib/qubitState'
 import { useEffect, useMemo } from 'react'
 
 function AppInner() {
@@ -29,7 +29,6 @@ function AppInner() {
   }, [phase])
 
   const stateLabel = useMemo(() => qubitStateLabel(theta), [theta])
-  const stateExplanation = useMemo(() => qubitStateExplanation(theta), [theta])
 
   return (
     <div className="app-shell">
@@ -46,15 +45,11 @@ function AppInner() {
       <LandingOverlay onBeginJourney={beginJourney} hidden={phase !== 'landing'} />
 
       {phase === 'playground' ? (
-        <section className="playground-stage" aria-label="Observation Log">
-          <ObservationLog
-            content={level1MissionConsole}
-            liveReadout={{
-              label: stateLabel,
-              explanation: stateExplanation,
-            }}
-          />
-        </section>
+        <ObservationLog
+          content={level1MissionConsole}
+          theta={theta}
+          phi={phi}
+        />
       ) : null}
 
       {phase === 'playground' ? (
