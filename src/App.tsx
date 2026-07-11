@@ -31,7 +31,7 @@ function AppInner() {
   const stateLabel = useMemo(() => qubitStateLabel(theta), [theta])
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${phase === 'playground' ? ' app-shell--playground' : ''}`}>
       <div className="space-gradient pointer-events-none absolute inset-0" />
       <div className="vignette pointer-events-none absolute inset-0" />
 

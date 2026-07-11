@@ -1,6 +1,3 @@
-import { useMemo } from 'react'
-import { sphericalComponents } from '../lib/spherical'
-
 function formatRadians(value: number): string {
   return value.toFixed(2)
 }
@@ -24,19 +21,14 @@ export default function ControlPanel({
   onThetaChange,
   onPhiChange,
 }: ControlPanelProps) {
-  const direction = useMemo(
-    () => sphericalComponents(theta, phi),
-    [theta, phi],
-  )
-
   return (
-    <div className="control-panel" role="region" aria-label="Quantum controls">
-      <div className="control-row">
+    <div className="control-dock" role="region" aria-label="Quantum controls">
+      <div className="control-dock-state">
         <span className="control-label">State</span>
         <span className="control-value">{stateLabel}</span>
       </div>
 
-      <label style={{ display: 'block', marginTop: '0.9rem' }}>
+      <label className="control-dock-slider">
         <span className="control-label">
           θ = {formatRadians(theta)} rad ({formatDegrees(theta)})
         </span>
@@ -47,11 +39,11 @@ export default function ControlPanel({
           step={0.01}
           value={theta}
           onChange={(e) => onThetaChange(Number(e.target.value))}
-          style={{ width: '100%', marginTop: '0.35rem' }}
+          className="control-dock-range"
         />
       </label>
 
-      <label style={{ display: 'block', marginTop: '0.75rem' }}>
+      <label className="control-dock-slider">
         <span className="control-label">
           φ = {formatRadians(phi)} rad ({formatDegrees(phi)})
         </span>
@@ -62,24 +54,9 @@ export default function ControlPanel({
           step={0.01}
           value={phi}
           onChange={(e) => onPhiChange(Number(e.target.value))}
-          style={{ width: '100%', marginTop: '0.35rem' }}
+          className="control-dock-range"
         />
       </label>
-
-      <div style={{ marginTop: '0.9rem' }}>
-        <p className="control-label" style={{ marginBottom: '0.35rem' }}>
-          Direction
-        </p>
-        <p className="control-value" style={{ fontSize: '0.75rem', opacity: 0.85 }}>
-          x = {direction.x.toFixed(3)}
-        </p>
-        <p className="control-value" style={{ fontSize: '0.75rem', opacity: 0.85 }}>
-          y = {direction.y.toFixed(3)}
-        </p>
-        <p className="control-value" style={{ fontSize: '0.75rem', opacity: 0.85 }}>
-          z = {direction.z.toFixed(3)}
-        </p>
-      </div>
     </div>
   )
 }
