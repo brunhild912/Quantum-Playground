@@ -34,6 +34,7 @@ export default function ControlPanel({
         </span>
         <input
           type="range"
+    
           min={0}
           max={Math.PI}
           step={0.01}

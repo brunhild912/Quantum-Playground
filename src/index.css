@@ -149,10 +149,10 @@ body {
   gap: 0.65rem;
   width: min(720px, calc(100vw - 2rem));
   padding: 0.75rem 1rem;
-  border-radius: 0.9rem;
-  background: rgba(0, 0, 0, 0.28);
+  border-radius:1.25rem;
+  background: rgba(8,18,35,.55);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(120, 210, 255, 0.06);
@@ -162,8 +162,8 @@ body {
   .control-dock {
     flex-direction: row;
     align-items: center;
-    gap: 1.25rem;
-    padding: 0.7rem 1.15rem;
+    gap:2rem;
+    padding:1rem 1.4rem;
     bottom: 1.35rem;
   }
 }
@@ -192,9 +192,58 @@ body {
 }
 
 .control-dock-range {
-  display: block;
   width: 100%;
   margin-top: 0.35rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.control-dock-range::-webkit-slider-runnable-track {
+  height: 8px; 
+  border-radius: 999px;
+  background: rgba(234, 247, 255, 0.18);
+}
+
+/* Thumb */
+.control-dock-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+
+  border-radius: 50%;
+  background: #EAF7FF;
+  border: 2px solid rgba(231, 237, 238, 0.8);
+
+  box-shadow:
+    0 0 8px rgba(110, 231, 255, 0.45),
+    0 0 18px rgba(110, 231, 255, 0.25);
+
+  transition: transform .2s ease;
+}
+
+.control-dock-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Firefox */
+.control-dock-range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(234, 247, 255, 0.18);
+}
+
+.control-dock-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(110, 231, 255, 0.8);
+  border-radius: 50%;
+  background: #EAF7FF;
+  box-shadow: 0 0 8px rgba(110, 231, 255, 0.45);
 }
 
 .control-row {
@@ -210,14 +259,15 @@ body {
   font-size: 0.65rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(209, 213, 219, 0.55);
+  color:rgba(234,247,255,.68);
 }
 
 .control-value {
   font-family: var(--font-mono);
-  font-weight: 500;
+  font-weight: 400;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #8EE8FF;
+  text-shadow: 0 0 12px rgba(110,231,255,.35);
 }
 
 .opening-curtain {
@@ -300,22 +350,22 @@ body {
 .mission-label {
   font-family: var(--font-mono);
   font-weight: 500;
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--color-muted);
-  opacity: 0.75;
+  color: rgba(234, 247, 255, 0.58);
+  text-shadow: 0 0 10px rgba(110, 231, 255, 0.12);
   margin-bottom: 0.35rem;
 }
 
 .mission-title {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.68rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-muted);
-  opacity: 0.85;
+  color: rgba(234, 247, 255, 0.9);
+  text-shadow: 0 0 10px rgba(110, 231, 255, 0.12);
 }
 
 .hero-title {

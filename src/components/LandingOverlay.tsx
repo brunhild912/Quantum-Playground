@@ -8,8 +8,8 @@ export default function LandingOverlay({
   return (
     <>
       <nav className="mission-nav" aria-label="Mission">
-        <p className="mission-label reveal-fade reveal-mission">Mission 01</p>
-        <p className="mission-title reveal-fade reveal-genesis">Genesis</p>
+        <p className="mission-label reveal-fade reveal-mission">Mission 1</p>
+        <p className="mission-title reveal-fade reveal-genesis">Quantum Playground</p>
       </nav>
 
       <section className={hidden ? 'content-stage landing-hidden' : 'content-stage'}>

@@ -7,12 +7,13 @@ import { level1MissionConsole } from './content/level1ObservationLog'
 import { JourneyProvider } from './state/JourneyProvider'
 import { useJourney } from './state/journeyContext'
 import { useQubitState } from './hooks/useQubitState'
-import { qubitStateLabel } from './lib/qubitState'
-import { useEffect, useMemo } from 'react'
+import { qubitStateLabel, type QubitStateName } from './lib/qubitState'
+import { useEffect, useRef } from 'react'
 
 function AppInner() {
   const { phase, beginJourney } = useJourney()
   const { theta, phi, setTheta, setPhi } = useQubitState()
+  const previousStateRef = useRef<QubitStateName>('|0⟩')
 
   // Disable scroll (wheel/touch) during the camera transition.
   useEffect(() => {
@@ -28,7 +29,8 @@ function AppInner() {
     }
   }, [phase])
 
-  const stateLabel = useMemo(() => qubitStateLabel(theta), [theta])
+  const stateLabel = qubitStateLabel(theta, previousStateRef.current)
+  previousStateRef.current = stateLabel
 
   return (
     <div className={`app-shell${phase === 'playground' ? ' app-shell--playground' : ''}`}>
