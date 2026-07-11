@@ -21,6 +21,11 @@ export default function ControlPanel({
   onThetaChange,
   onPhiChange,
 }: ControlPanelProps) {
+  console.log('[ControlPanel render]', {
+    theta,
+    renderedLabel: stateLabel,
+  })
+
   return (
     <div className="control-dock" role="region" aria-label="Quantum controls">
       <div className="control-dock-state">

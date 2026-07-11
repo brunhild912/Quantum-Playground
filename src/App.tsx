@@ -29,8 +29,16 @@ function AppInner() {
     }
   }, [phase])
 
-  const stateLabel = qubitStateLabel(theta, previousStateRef.current)
+  const previousLabel = previousStateRef.current
+  const stateLabel = qubitStateLabel(theta, previousLabel)
   previousStateRef.current = stateLabel
+
+  console.log('[AppInner render]', {
+    theta,
+    previousLabel,
+    returnedLabel: stateLabel,
+    renderedLabel: stateLabel,
+  })
 
   return (
     <div className={`app-shell${phase === 'playground' ? ' app-shell--playground' : ''}`}>

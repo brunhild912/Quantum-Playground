@@ -25,21 +25,32 @@ export function qubitStateLabel(
   theta: number,
   previous?: QubitStateName,
 ): QubitStateName {
+  const previousLabel = previous ?? '(none)'
+  let returned: QubitStateName
+
   if (previous === undefined) {
-    return classifyInitial(theta)
+    returned = classifyInitial(theta)
+  } else if (previous === '|0⟩') {
+    returned = theta > EXIT_POLE ? 'Superposition' : '|0⟩'
+  } else if (previous === '|1⟩') {
+    returned = distanceToOne(theta) > EXIT_POLE ? 'Superposition' : '|1⟩'
+  } else if (theta < ENTER_POLE) {
+    returned = '|0⟩'
+  } else if (distanceToOne(theta) < ENTER_POLE) {
+    returned = '|1⟩'
+  } else {
+    returned = 'Superposition'
   }
 
-  if (previous === '|0⟩') {
-    return theta > EXIT_POLE ? 'Superposition' : '|0⟩'
-  }
+  // Diagnostic: every classification (including Strict Mode double-render).
+  console.log('[qubitStateLabel]', {
+    theta,
+    previousLabel,
+    returnedLabel: returned,
+    changed: previous !== undefined && previous !== returned,
+  })
 
-  if (previous === '|1⟩') {
-    return distanceToOne(theta) > EXIT_POLE ? 'Superposition' : '|1⟩'
-  }
-
-  if (theta < ENTER_POLE) return '|0⟩'
-  if (distanceToOne(theta) < ENTER_POLE) return '|1⟩'
-  return 'Superposition'
+  return returned
 }
 
 export function qubitStateExplanation(
