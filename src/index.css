@@ -1158,3 +1158,73 @@ line-height:1.2;
   letter-spacing: 0.02em;
   color: rgba(234, 247, 255, 0.58);
 }
+
+/* Measurement History — Mission Console section (additive) */
+.measurement-history-body {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.measurement-history-empty {
+  margin: 0;
+  line-height: 1.55;
+  color: rgba(234, 247, 255, 0.6);
+}
+
+.measurement-history-entry {
+  padding: 0.15rem 0 0.35rem;
+}
+
+.measurement-history-entry-title {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #eaf7ff;
+}
+
+.measurement-history-label {
+  margin: 0.45rem 0 0.2rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.55);
+}
+
+.measurement-history-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.12rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: rgba(234, 247, 255, 0.78);
+}
+
+.measurement-history-result {
+  margin: 0.15rem 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: #8ee8ff;
+  text-shadow: 0 0 10px rgba(110, 231, 255, 0.3);
+}
+
+.measurement-history-time {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.42);
+}
+
+.measurement-history-divider {
+  height: 1px;
+  margin: 0.65rem 0;
+  background: rgba(255, 255, 255, 0.12);
+}

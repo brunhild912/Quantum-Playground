@@ -17,11 +17,12 @@ import { useEffect, useMemo } from 'react'
 function AppInner() {
   const { phase, beginJourney } = useJourney()
   const { theta, phi, setTheta, setPhi } = useQubitState()
-  const { measure, busy, pulse, result, dismissResult } = useMeasurementSequence({
-    theta,
-    setTheta,
-    enabled: phase === 'playground',
-  })
+  const { measure, busy, pulse, result, dismissResult, history } =
+    useMeasurementSequence({
+      theta,
+      setTheta,
+      enabled: phase === 'playground',
+    })
 
   // Disable scroll (wheel/touch) during the camera transition.
   useEffect(() => {
@@ -67,6 +68,7 @@ function AppInner() {
           content={level1MissionConsole}
           theta={theta}
           phi={phi}
+          measurementHistory={history}
         />
       ) : null}
 

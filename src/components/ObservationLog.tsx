@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react'
 import type { MissionConsoleContent } from '../content/observationLogTypes'
+import type { MeasurementRecord } from '../lib/measurementHistory'
 import { discoveryReadout } from '../lib/discoveryReadout'
 import MissionBriefingIcon from './MissionBriefingIcon'
 import MissionCard from './MissionCard'
+import MeasurementHistorySection from './MeasurementHistorySection'
 
 export type ObservationLogProps = {
   content: MissionConsoleContent
   theta: number
   phi: number
+  measurementHistory?: MeasurementRecord[]
 }
 
 type ConsoleView = 'closed' | 'open' | 'minimized'
@@ -16,6 +19,7 @@ export default function ObservationLog({
   content,
   theta,
   phi,
+  measurementHistory = [],
 }: ObservationLogProps) {
   const [view, setView] = useState<ConsoleView>('closed')
   const [openCardId, setOpenCardId] = useState<string | null>(null)
@@ -113,6 +117,12 @@ export default function ObservationLog({
                   onToggle={() => toggleCard(card.id)}
                 />
               ))}
+
+              <MeasurementHistorySection
+                records={measurementHistory}
+                isOpen={openCardId === 'measurement-history'}
+                onToggle={() => toggleCard('measurement-history')}
+              />
             </div>
           </div>
         </aside>

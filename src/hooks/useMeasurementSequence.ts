@@ -3,6 +3,10 @@ import {
   sampleMeasurement,
   type MeasurementOutcome,
 } from '../lib/measureQubit'
+import {
+  createMeasurementRecord,
+  type MeasurementRecord,
+} from '../lib/measurementHistory'
 
 export type MeasurementResult = {
   outcome: MeasurementOutcome
@@ -28,9 +32,11 @@ export function useMeasurementSequence({
   const [busy, setBusy] = useState(false)
   const [pulse, setPulse] = useState(0)
   const [result, setResult] = useState<MeasurementResult | null>(null)
+  const [history, setHistory] = useState<MeasurementRecord[]>([])
 
   const thetaRef = useRef(theta)
   thetaRef.current = theta
+  const historyCountRef = useRef(0)
 
   const timersRef = useRef<number[]>([])
   const rafRef = useRef<number | null>(null)
@@ -90,6 +96,15 @@ export function useMeasurementSequence({
           percent0: sample.probabilities.percent0,
           percent1: sample.probabilities.percent1,
         })
+
+        historyCountRef.current += 1
+        const record = createMeasurementRecord({
+          index: historyCountRef.current,
+          probabilityZero: sample.probabilities.percent0,
+          probabilityOne: sample.probabilities.percent1,
+          measuredState: sample.outcome,
+        })
+        setHistory((prev) => [...prev, record])
       }, COLLAPSE_MS),
     )
 
@@ -107,5 +122,6 @@ export function useMeasurementSequence({
     pulse,
     result,
     dismissResult,
+    history,
   }
 }
