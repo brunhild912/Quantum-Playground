@@ -881,3 +881,280 @@ line-height:1.2;
       #92999c
   );
 }
+
+/* Level 4 — Probability Visualization (additive panel only) */
+.probability-panel {
+  position: fixed;
+  z-index: 29;
+  left: 1rem;
+  bottom: 10.5rem;
+  width: min(13.5rem, calc(100vw - 2rem));
+  padding: 0.75rem 0.85rem;
+  border-radius: 1rem;
+  background: rgba(8, 18, 35, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(120, 210, 255, 0.06);
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .probability-panel {
+    left: max(1.35rem, calc(50% - min(360px, calc(50vw - 1rem))));
+    bottom: 6.15rem;
+    width: 13.5rem;
+  }
+}
+
+.probability-panel-title {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.68);
+  margin: 0;
+}
+
+.probability-panel-rule {
+  height: 1px;
+  margin: 0.55rem 0 0.7rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.probability-panel-row {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr 2.4rem;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.probability-panel-row + .probability-panel-row {
+  margin-top: 0.55rem;
+}
+
+.probability-panel-ket {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: #8ee8ff;
+  text-shadow: 0 0 12px rgba(110, 231, 255, 0.35);
+}
+
+.probability-panel-track {
+  height: 0.38rem;
+  border-radius: 999px;
+  background: rgba(234, 247, 255, 0.18);
+  overflow: hidden;
+}
+
+.probability-panel-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #8ee8ff;
+  box-shadow: 0 0 10px rgba(110, 231, 255, 0.35);
+  transition: width 0.18s ease-out;
+}
+
+.probability-panel-percent {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-align: right;
+  color: rgba(234, 247, 255, 0.75);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.18s ease;
+}
+
+/* Level 5 — Measurement (additive controls / FX only) */
+.app-shell--measuring .control-dock {
+  pointer-events: none;
+  opacity: 0.55;
+  transition: opacity 0.25s ease;
+}
+
+.app-shell--measuring .probability-panel {
+  border-color: rgba(110, 231, 255, 0.42);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 22px rgba(110, 231, 255, 0.22),
+    inset 0 1px 0 rgba(120, 210, 255, 0.12);
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.quantum-actions {
+  position: fixed;
+  z-index: 30;
+  right: 1rem;
+  bottom: 14.25rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .quantum-actions {
+    right: max(1.35rem, calc(50% - min(360px, calc(50vw - 1rem))));
+    bottom: 6.15rem;
+  }
+}
+
+.quantum-action-btn {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.9);
+  background: rgba(8, 18, 35, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  padding: 0.7rem 1.35rem;
+  cursor: pointer;
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(120, 210, 255, 0.06);
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    opacity 0.25s ease;
+}
+
+.quantum-action-btn:hover:not(:disabled) {
+  background: rgba(110, 231, 255, 0.1);
+  border-color: rgba(110, 231, 255, 0.4);
+  box-shadow:
+    0 0 18px rgba(110, 231, 255, 0.18),
+    0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.quantum-action-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.measurement-result-panel {
+  position: fixed;
+  z-index: 32;
+  left: 50%;
+  top: 18%;
+  transform: translateX(-50%);
+  width: min(18.5rem, calc(100vw - 2rem));
+  padding: 0.9rem 1rem 1rem;
+  border-radius: 1rem;
+  background: rgba(8, 18, 35, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(120, 210, 255, 0.08);
+  animation: measurement-result-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes measurement-result-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.measurement-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.measurement-result-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.68);
+}
+
+.measurement-result-close {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(234, 247, 255, 0.75);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.measurement-result-close:hover {
+  background: rgba(110, 231, 255, 0.12);
+  color: #8ee8ff;
+}
+
+.measurement-result-rule {
+  height: 1px;
+  margin: 0.55rem 0 0.75rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.measurement-result-label {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.55);
+}
+
+.measurement-result-outcome {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 1.35rem;
+  color: #8ee8ff;
+  text-shadow: 0 0 14px rgba(110, 231, 255, 0.35);
+}
+
+.measurement-result-probs {
+  list-style: none;
+  margin: 0 0 0.85rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.measurement-result-probs li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: rgba(234, 247, 255, 0.78);
+}
+
+.measurement-result-note {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: rgba(234, 247, 255, 0.58);
+}

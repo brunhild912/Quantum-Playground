@@ -2,17 +2,26 @@ import LandingOverlay from './components/LandingOverlay'
 import ObservationLog from './components/ObservationLog'
 import OpeningCurtain from './components/OpeningCurtain'
 import ControlPanel from './components/ControlPanel'
+import ProbabilityPanel from './components/ProbabilityPanel'
+import MeasureButton from './components/MeasureButton'
+import MeasurementResultPanel from './components/MeasurementResultPanel'
 import Scene from './components/Scene'
 import { level1MissionConsole } from './content/level1ObservationLog'
 import { JourneyProvider } from './state/JourneyProvider'
 import { useJourney } from './state/journeyContext'
 import { useQubitState } from './hooks/useQubitState'
+import { useMeasurementSequence } from './hooks/useMeasurementSequence'
 import { qubitStateLabel } from './lib/qubitState'
 import { useEffect, useMemo } from 'react'
 
 function AppInner() {
   const { phase, beginJourney } = useJourney()
   const { theta, phi, setTheta, setPhi } = useQubitState()
+  const { measure, busy, pulse, result, dismissResult } = useMeasurementSequence({
+    theta,
+    setTheta,
+    enabled: phase === 'playground',
+  })
 
   // Disable scroll (wheel/touch) during the camera transition.
   useEffect(() => {
@@ -30,14 +39,16 @@ function AppInner() {
 
   const stateLabel = useMemo(() => qubitStateLabel(theta), [theta])
 
-  console.log('[AppInner render]', {
-    theta,
-    returnedLabel: stateLabel,
-    renderedLabel: stateLabel,
-  })
+  const shellClass = [
+    'app-shell',
+    phase === 'playground' ? 'app-shell--playground' : '',
+    busy ? 'app-shell--measuring' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div className={`app-shell${phase === 'playground' ? ' app-shell--playground' : ''}`}>
+    <div className={shellClass}>
       <div className="space-gradient pointer-events-none absolute inset-0" />
       <div className="vignette pointer-events-none absolute inset-0" />
 
@@ -45,6 +56,7 @@ function AppInner() {
         <Scene
           phase={phase}
           qubit={phase === 'playground' ? { theta, phi } : null}
+          measurementPulse={pulse}
         />
       </section>
 
@@ -56,6 +68,18 @@ function AppInner() {
           theta={theta}
           phi={phi}
         />
+      ) : null}
+
+      {phase === 'playground' ? (
+        <ProbabilityPanel theta={theta} />
+      ) : null}
+
+      {phase === 'playground' ? (
+        <MeasureButton onMeasure={measure} disabled={busy} />
+      ) : null}
+
+      {phase === 'playground' && result ? (
+        <MeasurementResultPanel result={result} onClose={dismissResult} />
       ) : null}
 
       {phase === 'playground' ? (

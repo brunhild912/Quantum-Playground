@@ -7,6 +7,7 @@ import { createFresnelMaterial } from '../lib/fresnelMaterial'
 import { getOpeningSequence, getSequenceElapsed } from '../lib/openingSequence'
 import { SPHERE_CENTER_Y } from '../lib/sceneConstants'
 import QubitArrow from './QubitArrow'
+import MeasurementParticles from './MeasurementParticles'
 
 export const BLOCH_RADIUS = 1.12
 const SEGMENTS = 160
@@ -117,9 +118,11 @@ function SphereGrid() {
 export default function BlochSphere({
   focus,
   qubit,
+  measurementPulse = 0,
 }: {
   focus: number
   qubit?: { theta: number; phi: number } | null
+  measurementPulse?: number
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const gridRef = useRef<THREE.Group>(null)
@@ -214,7 +217,16 @@ export default function BlochSphere({
       </group>
 
       {qubit ? (
-        <QubitArrow theta={qubit.theta} phi={qubit.phi} radius={BLOCH_RADIUS} />
+        <QubitArrow
+          theta={qubit.theta}
+          phi={qubit.phi}
+          radius={BLOCH_RADIUS}
+          measurementPulse={measurementPulse}
+        />
+      ) : null}
+
+      {qubit && measurementPulse > 0.01 ? (
+        <MeasurementParticles pulse={measurementPulse} />
       ) : null}
     </group>
   )
