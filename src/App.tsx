@@ -107,28 +107,36 @@ function AppInner() {
       <LandingOverlay onBeginJourney={beginJourney} hidden={phase !== 'landing'} />
 
       {phase === 'playground' ? (
-        <ObservationLog
-          content={level1MissionConsole}
-          theta={theta}
-          phi={phi}
-          measurementHistory={history}
-          gateOperations={gateHistory}
-        />
-      ) : null}
+        <div className="instrument-shelf">
+          <div className="instrument-shelf-primary">
+            <ProbabilityPanel theta={theta} notice={phaseNotice} />
+            <MeasureButton
+              onMeasure={measure}
+              onXGate={applyX}
+              onZGate={applyZ}
+              disabled={controlsLocked}
+              xGlowing={xGlowing}
+              zGlowing={zGlowing}
+            />
+          </div>
 
-      {phase === 'playground' ? (
-        <ProbabilityPanel theta={theta} notice={phaseNotice} />
-      ) : null}
-
-      {phase === 'playground' ? (
-        <MeasureButton
-          onMeasure={measure}
-          onXGate={applyX}
-          onZGate={applyZ}
-          disabled={controlsLocked}
-          xGlowing={xGlowing}
-          zGlowing={zGlowing}
-        />
+          <div className="instrument-shelf-state-wrap">
+            <ObservationLog
+              content={level1MissionConsole}
+              theta={theta}
+              phi={phi}
+              measurementHistory={history}
+              gateOperations={gateHistory}
+            />
+            <ControlPanel
+              stateLabel={stateLabel}
+              theta={theta}
+              phi={phi}
+              onThetaChange={setTheta}
+              onPhiChange={setPhi}
+            />
+          </div>
+        </div>
       ) : null}
 
       {phase === 'playground' && result ? (
@@ -139,15 +147,6 @@ function AppInner() {
         <GateInfoPanel readout={gateReadout} onClose={dismissGateReadout} />
       ) : null}
 
-      {phase === 'playground' ? (
-        <ControlPanel
-          stateLabel={stateLabel}
-          theta={theta}
-          phi={phi}
-          onThetaChange={setTheta}
-          onPhiChange={setPhi}
-        />
-      ) : null}
       <OpeningCurtain />
     </div>
   )

@@ -8,7 +8,9 @@ type MeasureButtonProps = {
 }
 
 /**
- * Additive quantum-ops strip. Gates sit beside MEASURE without touching the Control Dock.
+ * Additive quantum-ops strip.
+ * Desktop: floating X / Z / Measure row.
+ * Mobile: compact vertical cluster beside the Probability card.
  */
 export default function MeasureButton({
   onMeasure,
@@ -20,34 +22,36 @@ export default function MeasureButton({
 }: MeasureButtonProps) {
   return (
     <div className="quantum-actions" role="group" aria-label="Quantum operations">
-      {onXGate ? (
+      <div className="quantum-actions-grid">
+        {onXGate ? (
+          <button
+            type="button"
+            className={`quantum-action-btn${xGlowing ? ' quantum-action-btn--glow' : ''}`}
+            onClick={onXGate}
+            disabled={disabled}
+          >
+            X
+          </button>
+        ) : null}
+        {onZGate ? (
+          <button
+            type="button"
+            className={`quantum-action-btn${zGlowing ? ' quantum-action-btn--glow' : ''}`}
+            onClick={onZGate}
+            disabled={disabled}
+          >
+            Z
+          </button>
+        ) : null}
         <button
           type="button"
-          className={`quantum-action-btn${xGlowing ? ' quantum-action-btn--glow' : ''}`}
-          onClick={onXGate}
+          className="quantum-action-btn quantum-action-btn--measure"
+          onClick={onMeasure}
           disabled={disabled}
         >
-          X
+          Measure
         </button>
-      ) : null}
-      {onZGate ? (
-        <button
-          type="button"
-          className={`quantum-action-btn${zGlowing ? ' quantum-action-btn--glow' : ''}`}
-          onClick={onZGate}
-          disabled={disabled}
-        >
-          Z
-        </button>
-      ) : null}
-      <button
-        type="button"
-        className="quantum-action-btn"
-        onClick={onMeasure}
-        disabled={disabled}
-      >
-        Measure
-      </button>
+      </div>
     </div>
   )
 }
