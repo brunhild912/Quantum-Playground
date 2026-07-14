@@ -5,6 +5,8 @@ const SEGMENT_COUNT = 10
 
 type ProbabilityPanelProps = {
   theta: number
+  /** Brief educational cue (e.g. after a phase gate). */
+  notice?: string | null
 }
 
 function segmentCount(percent: number): number {
@@ -47,7 +49,10 @@ function ProbabilitySegments({
   )
 }
 
-export default function ProbabilityPanel({ theta }: ProbabilityPanelProps) {
+export default function ProbabilityPanel({
+  theta,
+  notice = null,
+}: ProbabilityPanelProps) {
   const { percent0, percent1 } = useMemo(
     () => measurementProbabilities(theta),
     [theta],
@@ -79,6 +84,12 @@ export default function ProbabilityPanel({ theta }: ProbabilityPanelProps) {
         />
         <span className="probability-panel-percent">{percent1}%</span>
       </div>
+
+      {notice ? (
+        <p className="probability-panel-notice" role="status">
+          {notice}
+        </p>
+      ) : null}
     </aside>
   )
 }

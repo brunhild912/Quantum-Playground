@@ -13,6 +13,7 @@ import { useJourney } from './state/journeyContext'
 import { useQubitState } from './hooks/useQubitState'
 import { useMeasurementSequence } from './hooks/useMeasurementSequence'
 import { useXGateSequence } from './hooks/useXGateSequence'
+import { useZGateSequence } from './hooks/useZGateSequence'
 import { qubitStateLabel } from './lib/qubitState'
 import { useEffect, useMemo } from 'react'
 
@@ -22,17 +23,40 @@ function AppInner() {
 
   const {
     applyX,
-    busy: gateBusy,
+    busy: xBusy,
     glowing: xGlowing,
-    readout: gateReadout,
-    dismissReadout,
-    gateHistory,
+    readout: xReadout,
+    dismissReadout: dismissXReadout,
+    gateHistory: xHistory,
   } = useXGateSequence({
     theta,
     phi,
     setAngles,
     enabled: phase === 'playground',
   })
+
+  const {
+    applyZ,
+    busy: zBusy,
+    glowing: zGlowing,
+    readout: zReadout,
+    dismissReadout: dismissZReadout,
+    gateHistory: zHistory,
+    phaseNotice,
+  } = useZGateSequence({
+    theta,
+    phi,
+    setAngles,
+    enabled: phase === 'playground' && !xBusy,
+  })
+
+  const gateBusy = xBusy || zBusy
+  const gateReadout = zReadout ?? xReadout
+  const dismissGateReadout = zReadout ? dismissZReadout : dismissXReadout
+  const gateHistory = useMemo(
+    () => [...xHistory, ...zHistory],
+    [xHistory, zHistory],
+  )
 
   const { measure, busy: measureBusy, pulse, result, dismissResult, history } =
     useMeasurementSequence({
@@ -93,15 +117,17 @@ function AppInner() {
       ) : null}
 
       {phase === 'playground' ? (
-        <ProbabilityPanel theta={theta} />
+        <ProbabilityPanel theta={theta} notice={phaseNotice} />
       ) : null}
 
       {phase === 'playground' ? (
         <MeasureButton
           onMeasure={measure}
           onXGate={applyX}
+          onZGate={applyZ}
           disabled={controlsLocked}
           xGlowing={xGlowing}
+          zGlowing={zGlowing}
         />
       ) : null}
 
@@ -110,7 +136,7 @@ function AppInner() {
       ) : null}
 
       {phase === 'playground' && gateReadout && !result ? (
-        <GateInfoPanel readout={gateReadout} onClose={dismissReadout} />
+        <GateInfoPanel readout={gateReadout} onClose={dismissGateReadout} />
       ) : null}
 
       {phase === 'playground' ? (

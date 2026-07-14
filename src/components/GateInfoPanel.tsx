@@ -1,7 +1,8 @@
-import type { XGateReadout } from '../hooks/useXGateSequence'
-
 type GateInfoPanelProps = {
-  readout: XGateReadout
+  readout: {
+    title: string
+    body: string[]
+  }
   onClose: () => void
 }
 

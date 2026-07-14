@@ -11,6 +11,8 @@ export type GateOperationRecord = {
   title: string
   rotation: string
   result: string
+  /** Optional educational observation (e.g. phase vs probability). */
+  observation?: string
   timestamp: number
   /** Future: full circuit prefix. */
   gateSequence?: string[]
@@ -28,5 +30,22 @@ export function createXGateOperationRecord(index: number): GateOperationRecord {
     result: 'State updated successfully.',
     timestamp,
     gateSequence: ['X'],
+  }
+}
+
+export function createZGateOperationRecord(index: number): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-z-${index}-${timestamp}`,
+    index,
+    kind: 'gate',
+    gate: 'Z',
+    title: 'Applied Z Gate',
+    rotation: '180° around Z axis',
+    result: 'State updated successfully.',
+    observation:
+      'Measurement probabilities remained unchanged. The quantum phase changed.',
+    timestamp,
+    gateSequence: ['Z'],
   }
 }

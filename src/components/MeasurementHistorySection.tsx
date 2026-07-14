@@ -81,6 +81,15 @@ function GateEntry({ record }: { record: GateOperationRecord }) {
         <span>{record.result}</span>
       </p>
 
+      {record.observation ? (
+        <>
+          <p className="measurement-history-label">Observation</p>
+          <p className="measurement-history-line">
+            <span>{record.observation}</span>
+          </p>
+        </>
+      ) : null}
+
       <p className="measurement-history-time">{relative}</p>
     </div>
   )

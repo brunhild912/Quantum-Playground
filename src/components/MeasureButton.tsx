@@ -1,8 +1,10 @@
 type MeasureButtonProps = {
   onMeasure: () => void
   onXGate?: () => void
+  onZGate?: () => void
   disabled?: boolean
   xGlowing?: boolean
+  zGlowing?: boolean
 }
 
 /**
@@ -11,8 +13,10 @@ type MeasureButtonProps = {
 export default function MeasureButton({
   onMeasure,
   onXGate,
+  onZGate,
   disabled = false,
   xGlowing = false,
+  zGlowing = false,
 }: MeasureButtonProps) {
   return (
     <div className="quantum-actions" role="group" aria-label="Quantum operations">
@@ -24,6 +28,16 @@ export default function MeasureButton({
           disabled={disabled}
         >
           X
+        </button>
+      ) : null}
+      {onZGate ? (
+        <button
+          type="button"
+          className={`quantum-action-btn${zGlowing ? ' quantum-action-btn--glow' : ''}`}
+          onClick={onZGate}
+          disabled={disabled}
+        >
+          Z
         </button>
       ) : null}
       <button
