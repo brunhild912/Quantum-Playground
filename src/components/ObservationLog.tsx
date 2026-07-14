@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { MissionConsoleContent } from '../content/observationLogTypes'
 import type { MeasurementRecord } from '../lib/measurementHistory'
+import type { GateOperationRecord } from '../lib/gateOperationHistory'
 import { discoveryReadout } from '../lib/discoveryReadout'
 import MissionBriefingIcon from './MissionBriefingIcon'
 import MissionCard from './MissionCard'
@@ -11,6 +12,7 @@ export type ObservationLogProps = {
   theta: number
   phi: number
   measurementHistory?: MeasurementRecord[]
+  gateOperations?: GateOperationRecord[]
 }
 
 type ConsoleView = 'closed' | 'open' | 'minimized'
@@ -20,6 +22,7 @@ export default function ObservationLog({
   theta,
   phi,
   measurementHistory = [],
+  gateOperations = [],
 }: ObservationLogProps) {
   const [view, setView] = useState<ConsoleView>('closed')
   const [openCardId, setOpenCardId] = useState<string | null>(null)
@@ -120,6 +123,7 @@ export default function ObservationLog({
 
               <MeasurementHistorySection
                 records={measurementHistory}
+                gateOperations={gateOperations}
                 isOpen={openCardId === 'measurement-history'}
                 onToggle={() => toggleCard('measurement-history')}
               />

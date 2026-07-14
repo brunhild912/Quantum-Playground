@@ -5,24 +5,43 @@ import ControlPanel from './components/ControlPanel'
 import ProbabilityPanel from './components/ProbabilityPanel'
 import MeasureButton from './components/MeasureButton'
 import MeasurementResultPanel from './components/MeasurementResultPanel'
+import GateInfoPanel from './components/GateInfoPanel'
 import Scene from './components/Scene'
 import { level1MissionConsole } from './content/level1ObservationLog'
 import { JourneyProvider } from './state/JourneyProvider'
 import { useJourney } from './state/journeyContext'
 import { useQubitState } from './hooks/useQubitState'
 import { useMeasurementSequence } from './hooks/useMeasurementSequence'
+import { useXGateSequence } from './hooks/useXGateSequence'
 import { qubitStateLabel } from './lib/qubitState'
 import { useEffect, useMemo } from 'react'
 
 function AppInner() {
   const { phase, beginJourney } = useJourney()
-  const { theta, phi, setTheta, setPhi } = useQubitState()
-  const { measure, busy, pulse, result, dismissResult, history } =
+  const { theta, phi, setTheta, setPhi, setAngles } = useQubitState()
+
+  const {
+    applyX,
+    busy: gateBusy,
+    glowing: xGlowing,
+    readout: gateReadout,
+    dismissReadout,
+    gateHistory,
+  } = useXGateSequence({
+    theta,
+    phi,
+    setAngles,
+    enabled: phase === 'playground',
+  })
+
+  const { measure, busy: measureBusy, pulse, result, dismissResult, history } =
     useMeasurementSequence({
       theta,
       setTheta,
-      enabled: phase === 'playground',
+      enabled: phase === 'playground' && !gateBusy,
     })
+
+  const controlsLocked = measureBusy || gateBusy
 
   // Disable scroll (wheel/touch) during the camera transition.
   useEffect(() => {
@@ -43,7 +62,7 @@ function AppInner() {
   const shellClass = [
     'app-shell',
     phase === 'playground' ? 'app-shell--playground' : '',
-    busy ? 'app-shell--measuring' : '',
+    controlsLocked ? 'app-shell--measuring' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -69,6 +88,7 @@ function AppInner() {
           theta={theta}
           phi={phi}
           measurementHistory={history}
+          gateOperations={gateHistory}
         />
       ) : null}
 
@@ -77,11 +97,20 @@ function AppInner() {
       ) : null}
 
       {phase === 'playground' ? (
-        <MeasureButton onMeasure={measure} disabled={busy} />
+        <MeasureButton
+          onMeasure={measure}
+          onXGate={applyX}
+          disabled={controlsLocked}
+          xGlowing={xGlowing}
+        />
       ) : null}
 
       {phase === 'playground' && result ? (
         <MeasurementResultPanel result={result} onClose={dismissResult} />
+      ) : null}
+
+      {phase === 'playground' && gateReadout && !result ? (
+        <GateInfoPanel readout={gateReadout} onClose={dismissReadout} />
       ) : null}
 
       {phase === 'playground' ? (

@@ -1,12 +1,54 @@
 import { useMemo } from 'react'
 import { measurementProbabilities } from '../lib/qubitProbability'
 
+const SEGMENT_COUNT = 10
+
 type ProbabilityPanelProps = {
   theta: number
 }
 
+function segmentCount(percent: number): number {
+  return Math.min(
+    SEGMENT_COUNT,
+    Math.max(0, Math.round(percent / (100 / SEGMENT_COUNT))),
+  )
+}
+
+function ProbabilitySegments({
+  percent,
+  label,
+}: {
+  percent: number
+  label: string
+}) {
+  const filled = segmentCount(percent)
+
+  return (
+    <div
+      className="probability-panel-segments"
+      role="meter"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={percent}
+    >
+      {Array.from({ length: SEGMENT_COUNT }, (_, i) => (
+        <span
+          key={i}
+          className={
+            i < filled
+              ? 'probability-panel-segment probability-panel-segment--filled'
+              : 'probability-panel-segment'
+          }
+          aria-hidden="true"
+        />
+      ))}
+    </div>
+  )
+}
+
 export default function ProbabilityPanel({ theta }: ProbabilityPanelProps) {
-  const { percent0, percent1, p0, p1 } = useMemo(
+  const { percent0, percent1 } = useMemo(
     () => measurementProbabilities(theta),
     [theta],
   )
@@ -22,37 +64,19 @@ export default function ProbabilityPanel({ theta }: ProbabilityPanelProps) {
 
       <div className="probability-panel-row">
         <span className="probability-panel-ket">|0⟩</span>
-        <div
-          className="probability-panel-track"
-          role="meter"
-          aria-label="Probability of measuring zero"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={percent0}
-        >
-          <div
-            className="probability-panel-fill"
-            style={{ width: `${p0 * 100}%` }}
-          />
-        </div>
+        <ProbabilitySegments
+          percent={percent0}
+          label="Probability of measuring zero"
+        />
         <span className="probability-panel-percent">{percent0}%</span>
       </div>
 
       <div className="probability-panel-row">
         <span className="probability-panel-ket">|1⟩</span>
-        <div
-          className="probability-panel-track"
-          role="meter"
-          aria-label="Probability of measuring one"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={percent1}
-        >
-          <div
-            className="probability-panel-fill"
-            style={{ width: `${p1 * 100}%` }}
-          />
-        </div>
+        <ProbabilitySegments
+          percent={percent1}
+          label="Probability of measuring one"
+        />
         <span className="probability-panel-percent">{percent1}%</span>
       </div>
     </aside>

@@ -943,19 +943,28 @@ line-height:1.2;
   text-shadow: 0 0 12px rgba(110, 231, 255, 0.35);
 }
 
-.probability-panel-track {
-  height: 0.38rem;
-  border-radius: 999px;
-  background: rgba(234, 247, 255, 0.18);
-  overflow: hidden;
+.probability-panel-segments {
+  display: flex;
+  align-items: center;
+  gap: 0.18rem;
+  min-width: 0;
 }
 
-.probability-panel-fill {
-  height: 100%;
-  border-radius: 999px;
+.probability-panel-segment {
+  flex: 1 1 0;
+  height: 0.38rem;
+  min-width: 0;
+  border-radius: 0.12rem;
+  background: rgba(234, 247, 255, 0.18);
+  box-shadow: none;
+  transition:
+    background 0.18s ease-out,
+    box-shadow 0.18s ease-out;
+}
+
+.probability-panel-segment--filled {
   background: #8ee8ff;
   box-shadow: 0 0 10px rgba(110, 231, 255, 0.35);
-  transition: width 0.18s ease-out;
 }
 
 .probability-panel-percent {
@@ -1040,6 +1049,14 @@ line-height:1.2;
 .quantum-action-btn:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+.quantum-action-btn--glow {
+  background: rgba(110, 231, 255, 0.14);
+  border-color: rgba(110, 231, 255, 0.55);
+  box-shadow:
+    0 0 18px rgba(110, 231, 255, 0.28),
+    0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .measurement-result-panel {

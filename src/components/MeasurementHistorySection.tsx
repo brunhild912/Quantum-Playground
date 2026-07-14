@@ -1,17 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   formatRelativeTimestamp,
   type MeasurementRecord,
 } from '../lib/measurementHistory'
+import type { GateOperationRecord } from '../lib/gateOperationHistory'
 import MissionCardIcon from './MissionCardIcon'
 
 type MeasurementHistorySectionProps = {
   records: MeasurementRecord[]
+  gateOperations?: GateOperationRecord[]
   isOpen: boolean
   onToggle: () => void
 }
 
-function HistoryEntry({ record }: { record: MeasurementRecord }) {
+type MergedEntry =
+  | { type: 'measurement'; record: MeasurementRecord; timestamp: number }
+  | { type: 'gate'; record: GateOperationRecord; timestamp: number }
+
+function MeasurementEntry({ record }: { record: MeasurementRecord }) {
   const [relative, setRelative] = useState(() =>
     formatRelativeTimestamp(record.timestamp),
   )
@@ -46,14 +52,63 @@ function HistoryEntry({ record }: { record: MeasurementRecord }) {
   )
 }
 
+function GateEntry({ record }: { record: GateOperationRecord }) {
+  const [relative, setRelative] = useState(() =>
+    formatRelativeTimestamp(record.timestamp),
+  )
+
+  useEffect(() => {
+    setRelative(formatRelativeTimestamp(record.timestamp))
+    const id = window.setInterval(() => {
+      setRelative(formatRelativeTimestamp(record.timestamp))
+    }, 15000)
+    return () => window.clearInterval(id)
+  }, [record.timestamp])
+
+  return (
+    <div className="measurement-history-entry">
+      <p className="measurement-history-entry-title">Operation</p>
+
+      <p className="measurement-history-result">{record.title}</p>
+
+      <p className="measurement-history-label">Rotation</p>
+      <p className="measurement-history-line">
+        <span>{record.rotation}</span>
+      </p>
+
+      <p className="measurement-history-label">Result</p>
+      <p className="measurement-history-line">
+        <span>{record.result}</span>
+      </p>
+
+      <p className="measurement-history-time">{relative}</p>
+    </div>
+  )
+}
+
 export default function MeasurementHistorySection({
   records,
+  gateOperations = [],
   isOpen,
   onToggle,
 }: MeasurementHistorySectionProps) {
   const panelId = 'mission-card-panel-measurement-history'
-  // Newest first for display; storage appends chronologically.
-  const newestFirst = [...records].reverse()
+
+  const newestFirst = useMemo(() => {
+    const merged: MergedEntry[] = [
+      ...records.map((record) => ({
+        type: 'measurement' as const,
+        record,
+        timestamp: record.timestamp,
+      })),
+      ...gateOperations.map((record) => ({
+        type: 'gate' as const,
+        record,
+        timestamp: record.timestamp,
+      })),
+    ]
+    return merged.sort((a, b) => b.timestamp - a.timestamp)
+  }, [records, gateOperations])
 
   return (
     <article
@@ -81,15 +136,19 @@ export default function MeasurementHistorySection({
                 Press MEASURE to observe your first quantum state.
               </p>
             ) : (
-              newestFirst.map((record, i) => (
-                <div key={record.id}>
+              newestFirst.map((entry, i) => (
+                <div key={entry.record.id}>
                   {i > 0 ? (
                     <div
                       className="measurement-history-divider"
                       aria-hidden="true"
                     />
                   ) : null}
-                  <HistoryEntry record={record} />
+                  {entry.type === 'measurement' ? (
+                    <MeasurementEntry record={entry.record} />
+                  ) : (
+                    <GateEntry record={entry.record} />
+                  )}
                 </div>
               ))
             )}
