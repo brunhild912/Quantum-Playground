@@ -16,6 +16,7 @@ import { useXGateSequence } from './hooks/useXGateSequence'
 import { useYGateSequence } from './hooks/useYGateSequence'
 import { useZGateSequence } from './hooks/useZGateSequence'
 import { useSGateSequence } from './hooks/useSGateSequence'
+import { useTGateSequence } from './hooks/useTGateSequence'
 import { usePhaseLayer } from './hooks/usePhaseLayer'
 import { qubitStateLabel } from './lib/qubitState'
 import { useEffect, useMemo } from 'react'
@@ -83,19 +84,34 @@ function AppInner() {
     animatePhaseAdvance,
   })
 
-  const gateBusy = xBusy || yBusy || zBusy || sBusy
-  const phaseNotice = sPhaseNotice ?? zPhaseNotice
-  const gateReadout = sReadout ?? yReadout ?? zReadout ?? xReadout
-  const dismissGateReadout = sReadout
-    ? dismissSReadout
-    : yReadout
-      ? dismissYReadout
-      : zReadout
-        ? dismissZReadout
-        : dismissXReadout
+  const {
+    applyT,
+    busy: tBusy,
+    glowing: tGlowing,
+    readout: tReadout,
+    dismissReadout: dismissTReadout,
+    gateHistory: tHistory,
+    phaseNotice: tPhaseNotice,
+  } = useTGateSequence({
+    enabled: phase === 'playground' && !xBusy && !yBusy && !zBusy && !sBusy,
+    animatePhaseAdvance,
+  })
+
+  const gateBusy = xBusy || yBusy || zBusy || sBusy || tBusy
+  const phaseNotice = tPhaseNotice ?? sPhaseNotice ?? zPhaseNotice
+  const gateReadout = tReadout ?? sReadout ?? yReadout ?? zReadout ?? xReadout
+  const dismissGateReadout = tReadout
+    ? dismissTReadout
+    : sReadout
+      ? dismissSReadout
+      : yReadout
+        ? dismissYReadout
+        : zReadout
+          ? dismissZReadout
+          : dismissXReadout
   const gateHistory = useMemo(
-    () => [...xHistory, ...yHistory, ...zHistory, ...sHistory],
-    [xHistory, yHistory, zHistory, sHistory],
+    () => [...xHistory, ...yHistory, ...zHistory, ...sHistory, ...tHistory],
+    [xHistory, yHistory, zHistory, sHistory, tHistory],
   )
 
   const { measure, busy: measureBusy, pulse, result, dismissResult, history } =
@@ -158,11 +174,13 @@ function AppInner() {
               onYGate={applyY}
               onZGate={applyZ}
               onSGate={applyS}
+              onTGate={applyT}
               disabled={controlsLocked}
               xGlowing={xGlowing}
               yGlowing={yGlowing}
               zGlowing={zGlowing}
               sGlowing={sGlowing}
+              tGlowing={tGlowing}
             />
           </div>
 

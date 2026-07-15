@@ -4,16 +4,18 @@ type MeasureButtonProps = {
   onYGate?: () => void
   onZGate?: () => void
   onSGate?: () => void
+  onTGate?: () => void
   disabled?: boolean
   xGlowing?: boolean
   yGlowing?: boolean
   zGlowing?: boolean
   sGlowing?: boolean
+  tGlowing?: boolean
 }
 
 /**
  * Additive quantum-ops strip.
- * Desktop: floating X / Y / Z / S / Measure row.
+ * Desktop: floating X / Y / Z / S / T / Measure row.
  * Mobile: compact vertical cluster beside the Probability card.
  */
 export default function MeasureButton({
@@ -22,11 +24,13 @@ export default function MeasureButton({
   onYGate,
   onZGate,
   onSGate,
+  onTGate,
   disabled = false,
   xGlowing = false,
   yGlowing = false,
   zGlowing = false,
   sGlowing = false,
+  tGlowing = false,
 }: MeasureButtonProps) {
   return (
     <div className="quantum-actions" role="group" aria-label="Quantum operations">
@@ -69,6 +73,16 @@ export default function MeasureButton({
             disabled={disabled}
           >
             S
+          </button>
+        ) : null}
+        {onTGate ? (
+          <button
+            type="button"
+            className={`quantum-action-btn${tGlowing ? ' quantum-action-btn--glow' : ''}`}
+            onClick={onTGate}
+            disabled={disabled}
+          >
+            T
           </button>
         ) : null}
         <button

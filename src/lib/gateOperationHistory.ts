@@ -80,3 +80,19 @@ export function createSGateOperationRecord(index: number): GateOperationRecord {
     gateSequence: ['S'],
   }
 }
+
+export function createTGateOperationRecord(index: number): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-t-${index}-${timestamp}`,
+    index,
+    kind: 'gate',
+    gate: 'T',
+    title: 'Applied T Gate',
+    rotation: '+45°',
+    result: 'Quantum state updated.',
+    observation: 'Phase rotation. Measurement probabilities unchanged.',
+    timestamp,
+    gateSequence: ['T'],
+  }
+}
