@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { easeInOutCubic } from '../lib/easing'
-import { applyZGate, zGateRotationAt } from '../lib/gates/zGate'
+import { PHASE_GATE_DELTAS } from '../lib/phaseState'
 import {
   createZGateOperationRecord,
   type GateOperationRecord,
 } from '../lib/gateOperationHistory'
 
-const DURATION_MS = 800
 const READOUT_DISMISS_MS = 6500
-const PHASE_NOTICE_MS = 3800
+const PHASE_NOTICE_MS = 4000
+const PHASE_ANIM_MS = 950
 
 export type ZGateReadout = {
   title: string
@@ -16,17 +15,19 @@ export type ZGateReadout = {
 }
 
 type UseZGateSequenceArgs = {
-  theta: number
-  phi: number
-  setAngles: (theta: number, phi: number) => void
   enabled: boolean
+  /** Animate the reusable phase layer by Δ radians. */
+  animatePhaseAdvance: (delta: number, durationMs?: number) => Promise<void>
 }
 
+/**
+ * Z gate via the phase layer only.
+ * θ/φ (Bloch tip, probabilities, labels, readouts) stay fixed;
+ * only the equatorial phase ring advances — teaching that phase changed.
+ */
 export function useZGateSequence({
-  theta,
-  phi,
-  setAngles,
   enabled,
+  animatePhaseAdvance,
 }: UseZGateSequenceArgs) {
   const [busy, setBusy] = useState(false)
   const [glowing, setGlowing] = useState(false)
@@ -34,22 +35,12 @@ export function useZGateSequence({
   const [phaseNotice, setPhaseNotice] = useState<string | null>(null)
   const [gateHistory, setGateHistory] = useState<GateOperationRecord[]>([])
 
-  const thetaRef = useRef(theta)
-  const phiRef = useRef(phi)
-  thetaRef.current = theta
-  phiRef.current = phi
-
   const gateCountRef = useRef(0)
-  const rafRef = useRef<number | null>(null)
   const timersRef = useRef<number[]>([])
 
   const clearTimers = useCallback(() => {
     for (const id of timersRef.current) window.clearTimeout(id)
     timersRef.current = []
-    if (rafRef.current != null) {
-      cancelAnimationFrame(rafRef.current)
-      rafRef.current = null
-    }
   }, [])
 
   useEffect(() => () => clearTimers(), [clearTimers])
@@ -65,30 +56,18 @@ export function useZGateSequence({
   const applyZ = useCallback(() => {
     if (!enabled || busy) return
 
-    const startTheta = thetaRef.current
-    const startPhi = phiRef.current
     clearTimers()
     setBusy(true)
     setGlowing(true)
     setReadout(null)
     setPhaseNotice(null)
 
-    const started = performance.now()
+    void (async () => {
+      await new Promise<void>((r) => {
+        timersRef.current.push(window.setTimeout(() => r(), 80))
+      })
 
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - started) / DURATION_MS)
-      const eased = easeInOutCubic(t)
-      const angle = eased * Math.PI
-      const next = zGateRotationAt(startTheta, startPhi, angle)
-      setAngles(next.theta, next.phi)
-
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick)
-        return
-      }
-
-      const finalState = applyZGate(startTheta, startPhi)
-      setAngles(finalState.theta, finalState.phi)
+      await animatePhaseAdvance(PHASE_GATE_DELTAS.Z, PHASE_ANIM_MS)
 
       gateCountRef.current += 1
       setGateHistory((prev) => [
@@ -97,11 +76,12 @@ export function useZGateSequence({
       ])
 
       setReadout({
-        title: 'Quantum Z Gate',
+        title: 'Phase Shift',
         body: [
-          'The Z gate rotates the qubit around the Z axis.',
-          'Notice that the probabilities did not change.',
-          'The quantum state changed, even though measurements look exactly the same.',
+          'The Z Gate changed the phase of the quantum state.',
+          'Its measurement probabilities stayed exactly the same.',
+          'Phase cannot be observed directly from one measurement.',
+          'However, it changes how future quantum gates transform the state.',
         ],
       })
 
@@ -114,15 +94,8 @@ export function useZGateSequence({
 
       setGlowing(false)
       setBusy(false)
-      rafRef.current = null
-    }
-
-    timersRef.current.push(
-      window.setTimeout(() => {
-        rafRef.current = requestAnimationFrame(tick)
-      }, 80),
-    )
-  }, [busy, clearTimers, enabled, setAngles])
+    })()
+  }, [animatePhaseAdvance, busy, clearTimers, enabled])
 
   return {
     applyZ,

@@ -14,12 +14,18 @@ import { useQubitState } from './hooks/useQubitState'
 import { useMeasurementSequence } from './hooks/useMeasurementSequence'
 import { useXGateSequence } from './hooks/useXGateSequence'
 import { useZGateSequence } from './hooks/useZGateSequence'
+import { usePhaseLayer } from './hooks/usePhaseLayer'
 import { qubitStateLabel } from './lib/qubitState'
 import { useEffect, useMemo } from 'react'
 
 function AppInner() {
   const { phase, beginJourney } = useJourney()
   const { theta, phi, setTheta, setPhi, setAngles } = useQubitState()
+  const {
+    phase: phaseAngle,
+    pulse: phasePulse,
+    animatePhaseAdvance,
+  } = usePhaseLayer()
 
   const {
     applyX,
@@ -44,10 +50,8 @@ function AppInner() {
     gateHistory: zHistory,
     phaseNotice,
   } = useZGateSequence({
-    theta,
-    phi,
-    setAngles,
     enabled: phase === 'playground' && !xBusy,
+    animatePhaseAdvance,
   })
 
   const gateBusy = xBusy || zBusy
@@ -101,6 +105,8 @@ function AppInner() {
           phase={phase}
           qubit={phase === 'playground' ? { theta, phi } : null}
           measurementPulse={pulse}
+          phaseAngle={phaseAngle}
+          phasePulse={phasePulse}
         />
       </section>
 

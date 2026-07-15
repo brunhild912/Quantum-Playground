@@ -5,11 +5,12 @@ import { Line } from '@react-three/drei'
 import { meditativeFloat } from '../lib/easing'
 import { createFresnelMaterial } from '../lib/fresnelMaterial'
 import { getOpeningSequence, getSequenceElapsed } from '../lib/openingSequence'
-import { SPHERE_CENTER_Y } from '../lib/sceneConstants'
+import { BLOCH_RADIUS, SPHERE_CENTER_Y } from '../lib/sceneConstants'
 import QubitArrow from './QubitArrow'
 import MeasurementParticles from './MeasurementParticles'
+import PhaseRing from './PhaseRing'
 
-export const BLOCH_RADIUS = 1.12
+export { BLOCH_RADIUS }
 const SEGMENTS = 160
 const LINE_RADIUS = BLOCH_RADIUS * 1.001
 
@@ -119,10 +120,16 @@ export default function BlochSphere({
   focus,
   qubit,
   measurementPulse = 0,
+  phase = 0,
+  phasePulse = 0,
 }: {
   focus: number
   qubit?: { theta: number; phi: number } | null
   measurementPulse?: number
+  /** Relative phase for the equatorial phase layer (radians). */
+  phase?: number
+  /** Emphasis while a phase gate animates (0–1). */
+  phasePulse?: number
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const gridRef = useRef<THREE.Group>(null)
@@ -224,6 +231,8 @@ export default function BlochSphere({
           measurementPulse={measurementPulse}
         />
       ) : null}
+
+      {qubit ? <PhaseRing phase={phase} pulse={phasePulse} /> : null}
 
       {qubit && measurementPulse > 0.01 ? (
         <MeasurementParticles pulse={measurementPulse} />

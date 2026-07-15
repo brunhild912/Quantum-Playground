@@ -154,10 +154,14 @@ export default function Scene({
   phase,
   qubit,
   measurementPulse = 0,
+  phaseAngle = 0,
+  phasePulse = 0,
 }: {
   phase: JourneyPhase
   qubit?: { theta: number; phi: number } | null
   measurementPulse?: number
+  phaseAngle?: number
+  phasePulse?: number
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const controlsEnabled = phase === 'playground' || phase === 'landing'
@@ -224,6 +228,8 @@ export default function Scene({
         focus={focus}
         qubit={qubit}
         measurementPulse={measurementPulse}
+        phase={phaseAngle}
+        phasePulse={phasePulse}
       />
       <SceneControls controlsRef={controlsRef} enabled={controlsEnabled} />
       <TransitionRig phase={phase} controlsRef={controlsRef} />
