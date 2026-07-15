@@ -853,33 +853,29 @@ line-height:1.2;
   margin-top: 0.5rem;
 }
 
-.observation-log-body-inner::-webkit-scrollbar {
+/* Shared quantum scrollbar — Observation Log, Learning Notes, etc. */
+.scrollbar-quantum::-webkit-scrollbar {
   width: 8px;
 }
 
-.observation-log-body-inner::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.03);
+.scrollbar-quantum::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 999px;
 }
 
-.observation-log-body-inner::-webkit-scrollbar-thumb {
+.scrollbar-quantum::-webkit-scrollbar-thumb {
   background: linear-gradient(
     180deg,
     rgba(82, 100, 104, 0.75),
     rgba(121, 142, 160, 0.55)
   );
-
-  border-radius:999px;
-  border:2px solid transparent;
-  background-clip:padding-box;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
-.observation-log-body-inner::-webkit-scrollbar-thumb:hover {
-  background:linear-gradient(
-      180deg,
-      #d1dfe2,
-      #92999c
-  );
+.scrollbar-quantum::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #d1dfe2, #92999c);
 }
 
 /* Level 4 — Probability Visualization (additive panel only) */
@@ -1130,10 +1126,16 @@ line-height:1.2;
     bottom: 10.5rem;
     left: 50%;
     width: min(22rem, calc(100vw - 2.5rem));
-    max-height: min(28vh, 11.5rem);
+    /* Tall enough that most gate copy fits; scroll only when needed. */
+    max-height: min(36vh, 15.5rem);
     overflow-y: auto;
+    padding-bottom: 1.35rem;
     animation: gate-info-learning-notes-in 0.55s cubic-bezier(0.22, 1, 0.36, 1)
       both;
+  }
+
+  .gate-info-panel .measurement-result-note:last-child {
+    margin-bottom: 0.15rem;
   }
 }
 

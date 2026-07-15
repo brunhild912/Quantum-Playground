@@ -105,7 +105,7 @@ export default function ObservationLog({
 
           <div className="mission-console-window-body">
             <div className="observation-log-separator" aria-hidden="true" />
-            <div className="observation-log-body-inner">
+            <div className="observation-log-body-inner scrollbar-quantum">
               {content.cards.map((card) => (
                 <MissionCard
                   key={card.id}
