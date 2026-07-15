@@ -33,6 +33,21 @@ export function createXGateOperationRecord(index: number): GateOperationRecord {
   }
 }
 
+export function createYGateOperationRecord(index: number): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-y-${index}-${timestamp}`,
+    index,
+    kind: 'gate',
+    gate: 'Y',
+    title: 'Applied Y Gate',
+    rotation: '180° around Y axis',
+    result: 'State updated.',
+    timestamp,
+    gateSequence: ['Y'],
+  }
+}
+
 export function createZGateOperationRecord(index: number): GateOperationRecord {
   const timestamp = Date.now()
   return {
@@ -47,5 +62,21 @@ export function createZGateOperationRecord(index: number): GateOperationRecord {
       'Measurement probabilities remained unchanged. The quantum phase changed.',
     timestamp,
     gateSequence: ['Z'],
+  }
+}
+
+export function createSGateOperationRecord(index: number): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-s-${index}-${timestamp}`,
+    index,
+    kind: 'gate',
+    gate: 'S',
+    title: 'Applied S Gate',
+    rotation: '+90°',
+    result: 'Quantum state updated.',
+    observation: 'Phase rotation. Measurement probabilities unchanged.',
+    timestamp,
+    gateSequence: ['S'],
   }
 }

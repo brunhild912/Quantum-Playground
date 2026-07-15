@@ -13,7 +13,9 @@ import { useJourney } from './state/journeyContext'
 import { useQubitState } from './hooks/useQubitState'
 import { useMeasurementSequence } from './hooks/useMeasurementSequence'
 import { useXGateSequence } from './hooks/useXGateSequence'
+import { useYGateSequence } from './hooks/useYGateSequence'
 import { useZGateSequence } from './hooks/useZGateSequence'
+import { useSGateSequence } from './hooks/useSGateSequence'
 import { usePhaseLayer } from './hooks/usePhaseLayer'
 import { qubitStateLabel } from './lib/qubitState'
 import { useEffect, useMemo } from 'react'
@@ -42,24 +44,58 @@ function AppInner() {
   })
 
   const {
+    applyY,
+    busy: yBusy,
+    glowing: yGlowing,
+    readout: yReadout,
+    dismissReadout: dismissYReadout,
+    gateHistory: yHistory,
+  } = useYGateSequence({
+    theta,
+    phi,
+    setAngles,
+    enabled: phase === 'playground' && !xBusy,
+  })
+
+  const {
     applyZ,
     busy: zBusy,
     glowing: zGlowing,
     readout: zReadout,
     dismissReadout: dismissZReadout,
     gateHistory: zHistory,
-    phaseNotice,
+    phaseNotice: zPhaseNotice,
   } = useZGateSequence({
-    enabled: phase === 'playground' && !xBusy,
+    enabled: phase === 'playground' && !xBusy && !yBusy,
     animatePhaseAdvance,
   })
 
-  const gateBusy = xBusy || zBusy
-  const gateReadout = zReadout ?? xReadout
-  const dismissGateReadout = zReadout ? dismissZReadout : dismissXReadout
+  const {
+    applyS,
+    busy: sBusy,
+    glowing: sGlowing,
+    readout: sReadout,
+    dismissReadout: dismissSReadout,
+    gateHistory: sHistory,
+    phaseNotice: sPhaseNotice,
+  } = useSGateSequence({
+    enabled: phase === 'playground' && !xBusy && !yBusy && !zBusy,
+    animatePhaseAdvance,
+  })
+
+  const gateBusy = xBusy || yBusy || zBusy || sBusy
+  const phaseNotice = sPhaseNotice ?? zPhaseNotice
+  const gateReadout = sReadout ?? yReadout ?? zReadout ?? xReadout
+  const dismissGateReadout = sReadout
+    ? dismissSReadout
+    : yReadout
+      ? dismissYReadout
+      : zReadout
+        ? dismissZReadout
+        : dismissXReadout
   const gateHistory = useMemo(
-    () => [...xHistory, ...zHistory],
-    [xHistory, zHistory],
+    () => [...xHistory, ...yHistory, ...zHistory, ...sHistory],
+    [xHistory, yHistory, zHistory, sHistory],
   )
 
   const { measure, busy: measureBusy, pulse, result, dismissResult, history } =
@@ -119,10 +155,14 @@ function AppInner() {
             <MeasureButton
               onMeasure={measure}
               onXGate={applyX}
+              onYGate={applyY}
               onZGate={applyZ}
+              onSGate={applyS}
               disabled={controlsLocked}
               xGlowing={xGlowing}
+              yGlowing={yGlowing}
               zGlowing={zGlowing}
+              sGlowing={sGlowing}
             />
           </div>
 
