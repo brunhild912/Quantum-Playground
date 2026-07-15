@@ -19,7 +19,10 @@ import { useSGateSequence } from './hooks/useSGateSequence'
 import { useTGateSequence } from './hooks/useTGateSequence'
 import { usePhaseLayer } from './hooks/usePhaseLayer'
 import { qubitStateLabel } from './lib/qubitState'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
+const MOBILE_EDU_CARD_DELAY_MS = 2000
+const MOBILE_LAYOUT_MQ = '(max-width: 767.98px)'
 
 function AppInner() {
   const { phase, beginJourney } = useJourney()
@@ -139,6 +142,32 @@ function AppInner() {
 
   const stateLabel = useMemo(() => qubitStateLabel(theta), [theta])
 
+  // Mobile: let the gate animation settle before Learning Notes appear.
+  // Desktop / tablet keep the existing immediate card timing.
+  const [shownGateReadout, setShownGateReadout] = useState<typeof gateReadout>(
+    null,
+  )
+
+  useEffect(() => {
+    if (!gateReadout) {
+      setShownGateReadout(null)
+      return
+    }
+
+    const mobile = window.matchMedia(MOBILE_LAYOUT_MQ).matches
+    if (!mobile) {
+      setShownGateReadout(gateReadout)
+      return
+    }
+
+    setShownGateReadout(null)
+    const id = window.setTimeout(() => {
+      setShownGateReadout(gateReadout)
+    }, MOBILE_EDU_CARD_DELAY_MS)
+
+    return () => window.clearTimeout(id)
+  }, [gateReadout])
+
   const shellClass = [
     'app-shell',
     phase === 'playground' ? 'app-shell--playground' : '',
@@ -166,8 +195,24 @@ function AppInner() {
 
       {phase === 'playground' ? (
         <div className="instrument-shelf">
-          <div className="instrument-shelf-primary">
+          <div className="instrument-shelf-main">
             <ProbabilityPanel theta={theta} notice={phaseNotice} />
+            <ControlPanel
+              stateLabel={stateLabel}
+              theta={theta}
+              phi={phi}
+              onThetaChange={setTheta}
+              onPhiChange={setPhi}
+            />
+            {shownGateReadout && !result ? (
+              <GateInfoPanel
+                readout={shownGateReadout}
+                onClose={dismissGateReadout}
+              />
+            ) : null}
+          </div>
+
+          <div className="instrument-shelf-tools">
             <MeasureButton
               onMeasure={measure}
               onXGate={applyX}
@@ -182,9 +227,6 @@ function AppInner() {
               sGlowing={sGlowing}
               tGlowing={tGlowing}
             />
-          </div>
-
-          <div className="instrument-shelf-state-wrap">
             <ObservationLog
               content={level1MissionConsole}
               theta={theta}
@@ -192,23 +234,12 @@ function AppInner() {
               measurementHistory={history}
               gateOperations={gateHistory}
             />
-            <ControlPanel
-              stateLabel={stateLabel}
-              theta={theta}
-              phi={phi}
-              onThetaChange={setTheta}
-              onPhiChange={setPhi}
-            />
           </div>
         </div>
       ) : null}
 
       {phase === 'playground' && result ? (
         <MeasurementResultPanel result={result} onClose={dismissResult} />
-      ) : null}
-
-      {phase === 'playground' && gateReadout && !result ? (
-        <GateInfoPanel readout={gateReadout} onClose={dismissGateReadout} />
       ) : null}
 
       <OpeningCurtain />
