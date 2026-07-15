@@ -1119,6 +1119,35 @@ line-height:1.2;
   }
 }
 
+/*
+ * Desktop / tablet Learning Notes: gate explanation sits below the sphere
+ * (bottom-center) so the animation stays unobstructed. Mobile keeps the
+ * shared .measurement-result-panel placement above.
+ */
+@media (min-width: 768px) {
+  .gate-info-panel {
+    top: auto;
+    bottom: 10.5rem;
+    left: 50%;
+    width: min(22rem, calc(100vw - 2.5rem));
+    max-height: min(28vh, 11.5rem);
+    overflow-y: auto;
+    animation: gate-info-learning-notes-in 0.55s cubic-bezier(0.22, 1, 0.36, 1)
+      both;
+  }
+}
+
+@keyframes gate-info-learning-notes-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
 .measurement-result-header {
   display: flex;
   align-items: center;

@@ -10,7 +10,7 @@ type GateInfoPanelProps = {
 export default function GateInfoPanel({ readout, onClose }: GateInfoPanelProps) {
   return (
     <aside
-      className="measurement-result-panel"
+      className="measurement-result-panel gate-info-panel"
       role="status"
       aria-live="polite"
       aria-label={readout.title}
