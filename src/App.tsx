@@ -204,12 +204,6 @@ function AppInner() {
               onThetaChange={setTheta}
               onPhiChange={setPhi}
             />
-            {shownGateReadout && !result ? (
-              <GateInfoPanel
-                readout={shownGateReadout}
-                onClose={dismissGateReadout}
-              />
-            ) : null}
           </div>
 
           <div className="instrument-shelf-tools">
@@ -236,6 +230,13 @@ function AppInner() {
             />
           </div>
         </div>
+      ) : null}
+
+      {phase === 'playground' && shownGateReadout && !result ? (
+        <GateInfoPanel
+          readout={shownGateReadout}
+          onClose={dismissGateReadout}
+        />
       ) : null}
 
       {phase === 'playground' && result ? (

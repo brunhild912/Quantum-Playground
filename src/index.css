@@ -1150,17 +1150,6 @@ line-height:1.2;
   }
 }
 
-@keyframes gate-info-mobile-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .measurement-result-header {
   display: flex;
   align-items: center;
@@ -1321,23 +1310,25 @@ line-height:1.2;
 
 /* -------------------------------------------------------------------------- */
 /* Mobile playground ONLY (< 768px)                                           */
-/* Top ~40%: Bloch sphere. Bottom: two-column instrument (main ~80% | tools). */
+/* Sphere on top; 80/20 instrument below with balanced vertical whitespace.   */
+/* Floating Learning Notes / Measurement Result sit above the instrument.     */
 /* Desktop / tablet unchanged (display:contents + fixed panels above).        */
 /* -------------------------------------------------------------------------- */
 @media (max-width: 767.98px) {
   .app-shell--playground {
-    grid-template-rows: 40dvh minmax(0, 1fr);
+    --instrument-shelf-top: 38dvh;
+    grid-template-rows: var(--instrument-shelf-top) minmax(0, 1fr);
   }
 
   .app-shell--playground .hero-stage {
     grid-row: 1;
-    height: 40dvh;
-    max-height: 40dvh;
+    height: var(--instrument-shelf-top);
+    max-height: var(--instrument-shelf-top);
   }
 
   .instrument-shelf {
     position: fixed;
-    top: 40dvh;
+    top: var(--instrument-shelf-top);
     left: 0;
     right: 0;
     bottom: 0;
@@ -1347,7 +1338,8 @@ line-height:1.2;
     column-gap: 0.55rem;
     row-gap: 0.55rem;
     align-content: start;
-    padding: 0.65rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    /* Balanced breathing room above / below the 80/20 control block */
+    padding: 1.15rem 0.75rem calc(1.15rem + env(safe-area-inset-bottom, 0px));
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -1367,7 +1359,7 @@ line-height:1.2;
     min-width: 0;
   }
 
-  /* Left ~80%: probabilities → state → learning notes */
+  /* Left ~80%: probabilities → state */
   .instrument-shelf-main {
     grid-column: 1;
     gap: 0.55rem;
@@ -1449,27 +1441,6 @@ line-height:1.2;
     height: 22px;
   }
 
-  /* Learning notes: in the shelf under state; sphere stays clear.
-     Mount is delayed ~2s in App so the gate animation can be observed first. */
-  .instrument-shelf-main .gate-info-panel {
-    position: relative;
-    left: auto;
-    top: auto;
-    bottom: auto;
-    transform: none;
-    width: 100%;
-    max-width: none;
-    max-height: min(42vh, 16.5rem);
-    overflow-y: auto;
-    padding-bottom: 1.25rem;
-    z-index: 1;
-    animation: gate-info-mobile-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  .instrument-shelf-main .gate-info-panel .measurement-result-note:last-child {
-    margin-bottom: 0.15rem;
-  }
-
   /* Right ~20%: vertical tool dock + Observation Log trigger */
   .instrument-shelf-tools {
     grid-column: 2;
@@ -1535,9 +1506,10 @@ line-height:1.2;
     position: fixed;
     left: 0.75rem;
     right: 0.75rem;
-    top: calc(40dvh + 0.75rem);
+    top: calc(var(--instrument-shelf-top) + 0.75rem);
     bottom: auto;
-    max-height: min(42dvh, calc(60dvh - 1.5rem));
+    max-height: min(42dvh, calc(100dvh - var(--instrument-shelf-top) - 1.5rem));
+    z-index: 50;
   }
 
   .mission-console-window-btn {
@@ -1545,30 +1517,47 @@ line-height:1.2;
     height: 1.85rem;
   }
 
-  /* Measurement result overlay (not the gate Learning Notes card) */
-  .measurement-result-panel:not(.gate-info-panel) {
-    top: max(3.5rem, 8%);
-    width: min(20rem, calc(100vw - 1.5rem));
-    max-height: min(32dvh, 14rem);
+  /*
+   * Floating Learning Notes + Measurement Result:
+   * below the sphere, above the 80/20 instrument, no layout shift.
+   */
+  .gate-info-panel,
+  .measurement-result-panel {
+    position: fixed;
+    left: 50%;
+    top: calc(var(--instrument-shelf-top) + 0.35rem);
+    bottom: auto;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(20.5rem, calc(100vw - 1.5rem));
+    max-height: min(34vh, 13.75rem);
     overflow-y: auto;
+    padding-bottom: 1.25rem;
+    z-index: 40;
+    animation: measurement-result-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .gate-info-panel .measurement-result-note:last-child {
+    margin-bottom: 0.15rem;
   }
 }
 
 @media (max-width: 767.98px) and (max-height: 560px) {
   .app-shell--playground {
-    grid-template-rows: 36dvh minmax(0, 1fr);
+    --instrument-shelf-top: 34dvh;
+    grid-template-rows: var(--instrument-shelf-top) minmax(0, 1fr);
   }
 
   .app-shell--playground .hero-stage {
-    height: 36dvh;
-    max-height: 36dvh;
+    height: var(--instrument-shelf-top);
+    max-height: var(--instrument-shelf-top);
   }
 
   .instrument-shelf {
-    top: 36dvh;
+    top: var(--instrument-shelf-top);
     column-gap: 0.45rem;
     row-gap: 0.45rem;
-    padding: 0.5rem 0.65rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.85rem 0.65rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
   }
 
   .instrument-shelf-main {
@@ -1590,33 +1579,42 @@ line-height:1.2;
   }
 
   .instrument-shelf-tools .mission-console-window {
-    top: calc(36dvh + 0.5rem);
-    max-height: min(40dvh, calc(64dvh - 1rem));
+    top: calc(var(--instrument-shelf-top) + 0.5rem);
+    max-height: min(40dvh, calc(100dvh - var(--instrument-shelf-top) - 1rem));
   }
 
-  .instrument-shelf-main .gate-info-panel {
-    max-height: min(36vh, 13.5rem);
+  .gate-info-panel,
+  .measurement-result-panel {
+    top: calc(var(--instrument-shelf-top) + 0.25rem);
+    max-height: min(30vh, 11.5rem);
   }
 }
 
 @media (max-width: 767.98px) and (orientation: landscape) {
   .app-shell--playground {
-    grid-template-rows: 42dvh minmax(0, 1fr);
+    --instrument-shelf-top: 40dvh;
+    grid-template-rows: var(--instrument-shelf-top) minmax(0, 1fr);
   }
 
   .app-shell--playground .hero-stage {
-    height: 42dvh;
-    max-height: 42dvh;
+    height: var(--instrument-shelf-top);
+    max-height: var(--instrument-shelf-top);
   }
 
   .instrument-shelf {
-    top: 42dvh;
+    top: var(--instrument-shelf-top);
   }
 
   .instrument-shelf-tools .mission-console-window {
     left: auto;
     right: 0.75rem;
     width: min(22rem, calc(100vw - 1.5rem));
-    top: calc(42dvh + 0.5rem);
+    top: calc(var(--instrument-shelf-top) + 0.5rem);
+  }
+
+  .gate-info-panel,
+  .measurement-result-panel {
+    top: calc(var(--instrument-shelf-top) + 0.25rem);
+    max-height: min(28vh, 10.5rem);
   }
 }

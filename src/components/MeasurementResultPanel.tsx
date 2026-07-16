@@ -11,7 +11,7 @@ export default function MeasurementResultPanel({
 }: MeasurementResultPanelProps) {
   return (
     <aside
-      className="measurement-result-panel"
+      className="measurement-result-panel scrollbar-quantum"
       role="status"
       aria-live="polite"
       aria-label="Measurement result"
