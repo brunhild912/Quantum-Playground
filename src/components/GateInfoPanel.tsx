@@ -10,7 +10,7 @@ type GateInfoPanelProps = {
 export default function GateInfoPanel({ readout, onClose }: GateInfoPanelProps) {
   return (
     <aside
-      className="measurement-result-panel gate-info-panel scrollbar-quantum"
+      className="measurement-result-panel learning-popup scrollbar-quantum"
       role="status"
       aria-live="polite"
       aria-label={readout.title}

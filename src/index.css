@@ -1117,11 +1117,11 @@ line-height:1.2;
 }
 
 /*
- * Desktop / tablet Learning Notes: gate explanation sits below the sphere
- * (bottom-center) so the animation stays unobstructed.
+ * Desktop / tablet learning popup: gate notes + measurement result share the
+ * same bottom-center floating placement below the sphere.
  */
 @media (min-width: 768px) {
-  .gate-info-panel {
+  .learning-popup {
     top: auto;
     bottom: 10.5rem;
     left: 50%;
@@ -1134,7 +1134,7 @@ line-height:1.2;
       both;
   }
 
-  .gate-info-panel .measurement-result-note:last-child {
+  .learning-popup .measurement-result-note:last-child {
     margin-bottom: 0.15rem;
   }
 }
@@ -1521,8 +1521,7 @@ line-height:1.2;
    * Floating Learning Notes + Measurement Result:
    * below the sphere, above the 80/20 instrument, no layout shift.
    */
-  .gate-info-panel,
-  .measurement-result-panel {
+  .learning-popup {
     position: fixed;
     left: 50%;
     top: calc(var(--instrument-shelf-top) + 0.35rem);
@@ -1537,7 +1536,7 @@ line-height:1.2;
     animation: measurement-result-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
-  .gate-info-panel .measurement-result-note:last-child {
+  .learning-popup .measurement-result-note:last-child {
     margin-bottom: 0.15rem;
   }
 }
@@ -1583,8 +1582,7 @@ line-height:1.2;
     max-height: min(40dvh, calc(100dvh - var(--instrument-shelf-top) - 1rem));
   }
 
-  .gate-info-panel,
-  .measurement-result-panel {
+  .learning-popup {
     top: calc(var(--instrument-shelf-top) + 0.25rem);
     max-height: min(30vh, 11.5rem);
   }
@@ -1612,8 +1610,7 @@ line-height:1.2;
     top: calc(var(--instrument-shelf-top) + 0.5rem);
   }
 
-  .gate-info-panel,
-  .measurement-result-panel {
+  .learning-popup {
     top: calc(var(--instrument-shelf-top) + 0.25rem);
     max-height: min(28vh, 10.5rem);
   }
