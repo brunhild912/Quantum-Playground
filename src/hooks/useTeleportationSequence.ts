@@ -13,7 +13,6 @@ import {
   lerpAngles,
   reducedBloch3,
   runTeleportationProtocol,
-  type TeleportCorrection,
 } from '../lib/teleportation'
 
 const GATE_MS = 750

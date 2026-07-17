@@ -7,10 +7,7 @@ import {
   type Complex,
 } from './complex'
 import { cartesianToSpherical } from './gates/xGate'
-import {
-  qubitAmplitudes,
-  type TwoQubitAmplitudes,
-} from './twoQubitState'
+import { qubitAmplitudes } from './twoQubitState'
 
 /** |q0 q1 q2⟩ amplitudes, index = 4·q0 + 2·q1 + q2. */
 export type ThreeQubitAmplitudes = [

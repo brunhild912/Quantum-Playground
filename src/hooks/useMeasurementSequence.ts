@@ -9,7 +9,8 @@ import {
 } from '../lib/measurementHistory'
 
 export type MeasurementResult = {
-  outcome: MeasurementOutcome
+  /** Single-qubit |0⟩/|1⟩, or joint Bell outcomes like |00⟩. */
+  outcome: MeasurementOutcome | string
   percent0: number
   percent1: number
   registerLabel?: string | null
