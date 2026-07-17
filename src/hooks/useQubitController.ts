@@ -158,6 +158,7 @@ export function useQubitController(id: QubitId, playground: boolean) {
     phi,
     setTheta,
     setPhi,
+    setAngles,
     stateLabel,
     phaseAngle,
     phasePulse,

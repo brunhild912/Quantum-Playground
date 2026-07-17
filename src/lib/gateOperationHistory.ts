@@ -98,3 +98,25 @@ export function createTGateOperationRecord(index: number): GateOperationRecord {
     gateSequence: ['T'],
   }
 }
+
+export function createCNOTOperationRecord(input: {
+  index: number
+  controlLabel: string
+  targetLabel: string
+  result: string
+}): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-cnot-${input.index}-${timestamp}`,
+    index: input.index,
+    kind: 'gate',
+    gate: 'CNOT',
+    title: 'Applied CNOT',
+    rotation: `Control: ${input.controlLabel} → Target: ${input.targetLabel}`,
+    result: input.result,
+    observation: `Control: ${input.controlLabel}. Target: ${input.targetLabel}.`,
+    timestamp,
+    gateSequence: ['CNOT'],
+    registerLabel: `${input.controlLabel} → ${input.targetLabel}`,
+  }
+}

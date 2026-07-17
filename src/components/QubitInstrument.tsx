@@ -5,17 +5,25 @@ import MeasureButton from './MeasureButton'
 
 type QubitInstrumentProps = {
   qubit: QubitController
+  /** Extra lock (e.g. during CNOT). */
+  locked?: boolean
 }
 
 /**
  * Per-qubit instrument column: probability, state sliders, and gate dock.
  * Reuses existing panels — no duplicated quantum logic.
  */
-export default function QubitInstrument({ qubit }: QubitInstrumentProps) {
+export default function QubitInstrument({
+  qubit,
+  locked = false,
+}: QubitInstrumentProps) {
+  const disabled = qubit.controlsLocked || locked
+
   return (
     <section
-      className="qubit-instrument"
+      className={`qubit-instrument${locked ? ' qubit-instrument--locked' : ''}`}
       aria-label={`${qubit.name} controls`}
+      aria-busy={disabled || undefined}
     >
       <header className="qubit-instrument-header">
         <h2 className="qubit-instrument-title">{qubit.name}</h2>
@@ -38,7 +46,7 @@ export default function QubitInstrument({ qubit }: QubitInstrumentProps) {
         onZGate={qubit.applyZ}
         onSGate={qubit.applyS}
         onTGate={qubit.applyT}
-        disabled={qubit.controlsLocked}
+        disabled={disabled}
         xGlowing={qubit.xGlowing}
         yGlowing={qubit.yGlowing}
         zGlowing={qubit.zGlowing}

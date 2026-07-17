@@ -1638,6 +1638,12 @@ line-height:1.2;
   min-width: 0;
 }
 
+.qubit-instrument--locked .control-dock,
+.qubit-instrument--locked .quantum-actions {
+  pointer-events: none;
+  opacity: 0.72;
+}
+
 .qubit-instrument-header {
   display: flex;
   align-items: baseline;
@@ -1757,6 +1763,10 @@ line-height:1.2;
   }
 
   .instrument-shelf--dual .composite-state-panel {
+    grid-column: 1 / -1;
+  }
+
+  .instrument-shelf--dual .controlled-ops-panel {
     grid-column: 1 / -1;
   }
 }
@@ -1953,4 +1963,115 @@ line-height:1.2;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem 0.75rem;
   }
+
+  .controlled-ops-panel {
+    flex-shrink: 0;
+  }
+}
+
+/* Level 7C — Controlled Operations (additive) */
+.controlled-ops-panel {
+  width: 100%;
+  padding: 0.75rem 0.85rem 0.85rem;
+  border-radius: 1rem;
+  background: rgba(8, 18, 35, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(120, 210, 255, 0.06);
+}
+
+.controlled-ops-panel-header {
+  display: flex;
+  align-items: baseline;
+}
+
+.controlled-ops-panel-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.68);
+}
+
+.controlled-ops-panel-rule {
+  height: 1px;
+  margin: 0.55rem 0 0.65rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.controlled-ops-fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  align-items: center;
+}
+
+.controlled-ops-legend {
+  width: 100%;
+  margin: 0 0 0.35rem;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.55);
+}
+
+.controlled-ops-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: rgba(234, 247, 255, 0.82);
+  cursor: pointer;
+}
+
+.controlled-ops-option input {
+  accent-color: #8ee8ff;
+}
+
+.controlled-ops-helper {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgba(255, 196, 160, 0.85);
+}
+
+.controlled-ops-apply {
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.controlled-ops-pulse-track {
+  position: relative;
+  margin-top: 0.7rem;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.controlled-ops-pulse-thumb {
+  position: absolute;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: -0.275rem;
+  margin-left: -0.275rem;
+  border-radius: 50%;
+  background: #8ee8ff;
+  box-shadow: 0 0 12px rgba(110, 231, 255, 0.55);
+  transition: left 0.05s linear;
 }

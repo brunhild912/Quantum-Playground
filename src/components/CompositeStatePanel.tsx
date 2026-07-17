@@ -1,11 +1,16 @@
 import { useMemo } from 'react'
-import { compositeFromIndependentQubits } from '../lib/compositeQuantumState'
+import {
+  compositeFromIndependentQubits,
+  type CompositeQuantumState,
+} from '../lib/compositeQuantumState'
 
 const SEGMENT_COUNT = 10
 
 type CompositeStatePanelProps = {
   thetaA: number
   thetaB: number
+  /** When set (e.g. after CNOT), shows vector-based joint probabilities. */
+  compositeOverride?: CompositeQuantumState | null
 }
 
 function segmentCount(percent: number): number {
@@ -55,10 +60,11 @@ function ProbabilitySegments({
 export default function CompositeStatePanel({
   thetaA,
   thetaB,
+  compositeOverride = null,
 }: CompositeStatePanelProps) {
   const composite = useMemo(
-    () => compositeFromIndependentQubits(thetaA, thetaB),
-    [thetaA, thetaB],
+    () => compositeOverride ?? compositeFromIndependentQubits(thetaA, thetaB),
+    [compositeOverride, thetaA, thetaB],
   )
 
   return (
