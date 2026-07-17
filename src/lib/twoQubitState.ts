@@ -1,4 +1,5 @@
 import {
+  cAdd,
   cFromPolar,
   cMag2,
   cMul,
@@ -96,6 +97,58 @@ export function applyCNOTToAmplitudes(
   }
 
   return next
+}
+
+/** 2×2 unitary as [[a,b],[c,d]] acting on |0⟩/|1⟩. */
+type Gate2x2 = readonly [Complex, Complex, Complex, Complex]
+
+const INV_SQRT2 = 1 / Math.sqrt(2)
+const GATE_H: Gate2x2 = [
+  complex(INV_SQRT2),
+  complex(INV_SQRT2),
+  complex(INV_SQRT2),
+  complex(-INV_SQRT2),
+]
+const GATE_X: Gate2x2 = [complex(0), complex(1), complex(1), complex(0)]
+const GATE_Z: Gate2x2 = [complex(1), complex(0), complex(0), complex(-1)]
+
+function apply2x2OnA(
+  amps: TwoQubitAmplitudes,
+  g: Gate2x2,
+): TwoQubitAmplitudes {
+  const [g00, g01, g10, g11] = g
+  return [
+    cAdd(cMul(g00, amps[0]), cMul(g01, amps[2])),
+    cAdd(cMul(g00, amps[1]), cMul(g01, amps[3])),
+    cAdd(cMul(g10, amps[0]), cMul(g11, amps[2])),
+    cAdd(cMul(g10, amps[1]), cMul(g11, amps[3])),
+  ]
+}
+
+function apply2x2OnB(
+  amps: TwoQubitAmplitudes,
+  g: Gate2x2,
+): TwoQubitAmplitudes {
+  const [g00, g01, g10, g11] = g
+  return [
+    cAdd(cMul(g00, amps[0]), cMul(g01, amps[1])),
+    cAdd(cMul(g10, amps[0]), cMul(g11, amps[1])),
+    cAdd(cMul(g00, amps[2]), cMul(g01, amps[3])),
+    cAdd(cMul(g10, amps[2]), cMul(g11, amps[3])),
+  ]
+}
+
+/**
+ * Apply a single-qubit gate to the joint amplitude vector.
+ * Used by Bell preparation (and future circuit playback) after entanglement.
+ */
+export function applySingleQubitGateToAmplitudes(
+  amps: TwoQubitAmplitudes,
+  gate: 'H' | 'X' | 'Z',
+  qubit: QubitId,
+): TwoQubitAmplitudes {
+  const matrix = gate === 'H' ? GATE_H : gate === 'X' ? GATE_X : GATE_Z
+  return qubit === 'A' ? apply2x2OnA(amps, matrix) : apply2x2OnB(amps, matrix)
 }
 
 export function amplitudesNearlyEqual(

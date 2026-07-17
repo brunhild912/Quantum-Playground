@@ -60,9 +60,10 @@ export function useXGateSequence({
 
   const dismissReadout = useCallback(() => setReadout(null), [])
 
-  const applyX = useCallback(() => {
+  const applyX = useCallback((options?: { silent?: boolean }) => {
     if (!enabled || busy) return
 
+    const silent = options?.silent === true
     const startTheta = thetaRef.current
     const startPhi = phiRef.current
     clearTimers()
@@ -88,19 +89,21 @@ export function useXGateSequence({
       const finalState = applyXGate(startTheta, startPhi)
       setAngles(finalState.theta, finalState.phi)
 
-      gateCountRef.current += 1
-      setGateHistory((prev) => [
-        ...prev,
-        createXGateOperationRecord(gateCountRef.current),
-      ])
+      if (!silent) {
+        gateCountRef.current += 1
+        setGateHistory((prev) => [
+          ...prev,
+          createXGateOperationRecord(gateCountRef.current),
+        ])
 
-      setReadout({
-        title: 'Quantum X Gate',
-        body: [
-          'The X gate rotates the qubit 180° about the X axis.',
-          'It swaps |0⟩ and |1⟩ while continuously transforming every state in between.',
-        ],
-      })
+        setReadout({
+          title: 'Quantum X Gate',
+          body: [
+            'The X gate rotates the qubit 180° about the X axis.',
+            'It swaps |0⟩ and |1⟩ while continuously transforming every state in between.',
+          ],
+        })
+      }
 
       setGlowing(false)
       setBusy(false)

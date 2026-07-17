@@ -1769,6 +1769,10 @@ line-height:1.2;
   .instrument-shelf--dual .controlled-ops-panel {
     grid-column: 1 / -1;
   }
+
+  .instrument-shelf--dual .bell-prep-panel {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 767.98px) {
@@ -2089,4 +2093,88 @@ line-height:1.2;
   background: #8ee8ff;
   box-shadow: 0 0 12px rgba(110, 231, 255, 0.55);
   transition: left 0.05s linear;
+}
+
+/* Level 7E — Bell State Preparation (additive) */
+.bell-prep-panel {
+  width: 100%;
+  padding: 0.75rem 0.85rem 0.85rem;
+  border-radius: 1rem;
+  background: rgba(8, 18, 35, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(120, 210, 255, 0.06);
+}
+
+.bell-prep-panel-header {
+  display: flex;
+  align-items: baseline;
+}
+
+.bell-prep-panel-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.68);
+}
+
+.bell-prep-panel-rule {
+  height: 1px;
+  margin: 0.55rem 0 0.65rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bell-prep-fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1.1rem;
+  align-items: center;
+}
+
+.bell-prep-legend {
+  width: 100%;
+  margin: 0 0 0.35rem;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(200, 220, 240, 0.55);
+}
+
+.bell-prep-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: rgba(234, 247, 255, 0.88);
+  cursor: pointer;
+}
+
+.bell-prep-option input {
+  accent-color: #7dd3fc;
+}
+
+.bell-prep-option-label {
+  letter-spacing: 0.04em;
+}
+
+.bell-prep-apply {
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+@media (max-width: 767.98px) {
+  .bell-prep-panel {
+    flex-shrink: 0;
+  }
 }

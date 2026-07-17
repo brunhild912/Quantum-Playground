@@ -199,10 +199,13 @@ function EntanglementLink({
   a,
   b,
   active,
+  boost = 0,
 }: {
   a: { x: number; y: number }
   b: { x: number; y: number }
   active: boolean
+  /** 0–1 brief intensify after Bell preparation. */
+  boost?: number
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const markerRef = useRef<THREE.Mesh>(null)
@@ -215,7 +218,10 @@ function EntanglementLink({
     if (!group || !marker || !mat) return
 
     const pulse = active ? 0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 3.2) : 0
-    mat.opacity = active ? 0.24 + pulse * 0.18 : 0
+    const boostAmt = Math.max(0, Math.min(1, boost))
+    mat.opacity = active
+      ? 0.24 + pulse * 0.18 + boostAmt * 0.28
+      : 0
 
     const t = (state.clock.elapsedTime * 0.28) % 1
     marker.position.set(
@@ -224,6 +230,7 @@ function EntanglementLink({
       0,
     )
     marker.visible = active
+    marker.scale.setScalar(1 + boostAmt * 0.55)
   })
 
   if (!active) return null
@@ -279,6 +286,7 @@ export default function Scene({
   qubits,
   stackVertical = false,
   entangled = false,
+  entanglementBoost = 0,
 }: {
   phase: JourneyPhase
   /** Legacy single-qubit view (landing / transition). */
@@ -292,6 +300,8 @@ export default function Scene({
   stackVertical?: boolean
   /** Level 7D: show a subtle quantum link between the two spheres. */
   entangled?: boolean
+  /** Level 7E: brief intensify after Bell preparation (0–1). */
+  entanglementBoost?: number
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const controlsEnabled = phase === 'playground' || phase === 'landing'
@@ -386,7 +396,12 @@ export default function Scene({
             phase={qubits![1]!.phase ?? 0}
             phasePulse={qubits![1]!.phasePulse ?? 0}
           />
-          <EntanglementLink a={offsetA} b={offsetB} active={entangled} />
+          <EntanglementLink
+            a={offsetA}
+            b={offsetB}
+            active={entangled}
+            boost={entanglementBoost}
+          />
           <DualFraming enabled />
         </>
       ) : (

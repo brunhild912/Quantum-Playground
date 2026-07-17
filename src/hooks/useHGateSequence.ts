@@ -60,9 +60,10 @@ export function useHGateSequence({
 
   const dismissReadout = useCallback(() => setReadout(null), [])
 
-  const applyH = useCallback(() => {
+  const applyH = useCallback((options?: { silent?: boolean }) => {
     if (!enabled || busy) return
 
+    const silent = options?.silent === true
     const startTheta = thetaRef.current
     const startPhi = phiRef.current
     clearTimers()
@@ -86,19 +87,21 @@ export function useHGateSequence({
       const finalState = applyHGate(startTheta, startPhi)
       setAngles(finalState.theta, finalState.phi)
 
-      gateCountRef.current += 1
-      setGateHistory((prev) => [
-        ...prev,
-        createHGateOperationRecord(gateCountRef.current),
-      ])
+      if (!silent) {
+        gateCountRef.current += 1
+        setGateHistory((prev) => [
+          ...prev,
+          createHGateOperationRecord(gateCountRef.current),
+        ])
 
-      setReadout({
-        title: 'Hadamard Gate',
-        body: [
-          'The Hadamard gate rotates a pole state into an even superposition.',
-          'This prepares a qubit so a controlled gate can create quantum correlation.',
-        ],
-      })
+        setReadout({
+          title: 'Hadamard Gate',
+          body: [
+            'The Hadamard gate rotates a pole state into an even superposition.',
+            'This prepares a qubit so a controlled gate can create quantum correlation.',
+          ],
+        })
+      }
 
       setGlowing(false)
       setBusy(false)

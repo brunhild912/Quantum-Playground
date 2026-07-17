@@ -58,10 +58,12 @@ function MeasurementEntry({ record }: { record: MeasurementRecord }) {
 
       {record.correlatedRegisterLabel && record.correlatedMeasuredState ? (
         <>
-          <p className="measurement-history-label">Correlated measurement</p>
+          <p className="measurement-history-label">Partner qubit collapsed</p>
           <p className="measurement-history-line">
-            <span>{record.correlatedRegisterLabel}</span>
-            <span>{record.correlatedMeasuredState}</span>
+            <span>
+              {record.correlatedRegisterLabel} ={' '}
+              {record.correlatedMeasuredState}
+            </span>
           </p>
         </>
       ) : null}
@@ -90,33 +92,66 @@ function GateEntry({ record }: { record: GateOperationRecord }) {
 
       <p className="measurement-history-result">{record.title}</p>
 
-      {record.registerLabel ? (
+      {record.gate === 'CNOT' && record.title === 'Created Bell State' ? (
         <>
-          <p className="measurement-history-label">Qubit</p>
+          <p className="measurement-history-label">Applied</p>
           <p className="measurement-history-line">
-            <span>{record.registerLabel}</span>
+            <span>{record.rotation}</span>
+          </p>
+
+          <p className="measurement-history-label">Status</p>
+          <p className="measurement-history-line">
+            <span>Entangled</span>
           </p>
         </>
-      ) : null}
-
-      <p className="measurement-history-label">Rotation</p>
-      <p className="measurement-history-line">
-        <span>{record.rotation}</span>
-      </p>
-
-      <p className="measurement-history-label">Result</p>
-      <p className="measurement-history-line">
-        <span>{record.result}</span>
-      </p>
-
-      {record.observation ? (
+      ) : record.gate === 'BELL' ? (
         <>
-          <p className="measurement-history-label">Observation</p>
+          <p className="measurement-history-label">State</p>
           <p className="measurement-history-line">
-            <span>{record.observation}</span>
+            <span>{record.result}</span>
+          </p>
+
+          <p className="measurement-history-label">Operations</p>
+          <p className="measurement-history-line">
+            <span>{record.rotation}</span>
+          </p>
+
+          <p className="measurement-history-label">Status</p>
+          <p className="measurement-history-line">
+            <span>Entangled</span>
           </p>
         </>
-      ) : null}
+      ) : (
+        <>
+          {record.registerLabel ? (
+            <>
+              <p className="measurement-history-label">Qubit</p>
+              <p className="measurement-history-line">
+                <span>{record.registerLabel}</span>
+              </p>
+            </>
+          ) : null}
+
+          <p className="measurement-history-label">Rotation</p>
+          <p className="measurement-history-line">
+            <span>{record.rotation}</span>
+          </p>
+
+          <p className="measurement-history-label">Result</p>
+          <p className="measurement-history-line">
+            <span>{record.result}</span>
+          </p>
+
+          {record.observation ? (
+            <>
+              <p className="measurement-history-label">Observation</p>
+              <p className="measurement-history-line">
+                <span>{record.observation}</span>
+              </p>
+            </>
+          ) : null}
+        </>
+      )}
 
       <p className="measurement-history-time">{relative}</p>
     </div>

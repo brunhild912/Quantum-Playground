@@ -53,9 +53,10 @@ export function useZGateSequence({
 
   const dismissReadout = useCallback(() => setReadout(null), [])
 
-  const applyZ = useCallback(() => {
+  const applyZ = useCallback((options?: { silent?: boolean }) => {
     if (!enabled || busy) return
 
+    const silent = options?.silent === true
     clearTimers()
     setBusy(true)
     setGlowing(true)
@@ -69,28 +70,30 @@ export function useZGateSequence({
 
       await animatePhaseAdvance(PHASE_GATE_DELTAS.Z, PHASE_ANIM_MS)
 
-      gateCountRef.current += 1
-      setGateHistory((prev) => [
-        ...prev,
-        createZGateOperationRecord(gateCountRef.current),
-      ])
+      if (!silent) {
+        gateCountRef.current += 1
+        setGateHistory((prev) => [
+          ...prev,
+          createZGateOperationRecord(gateCountRef.current),
+        ])
 
-      setReadout({
-        title: 'Phase Shift',
-        body: [
-          'The Z Gate changed the phase of the quantum state.',
-          'Its measurement probabilities stayed exactly the same.',
-          'Phase cannot be observed directly from one measurement.',
-          'However, it changes how future quantum gates transform the state.',
-        ],
-      })
+        setReadout({
+          title: 'Phase Shift',
+          body: [
+            'The Z Gate changed the phase of the quantum state.',
+            'Its measurement probabilities stayed exactly the same.',
+            'Phase cannot be observed directly from one measurement.',
+            'However, it changes how future quantum gates transform the state.',
+          ],
+        })
 
-      setPhaseNotice(
-        "Notice: The probabilities didn't change, but the quantum state did.",
-      )
-      timersRef.current.push(
-        window.setTimeout(() => setPhaseNotice(null), PHASE_NOTICE_MS),
-      )
+        setPhaseNotice(
+          "Notice: The probabilities didn't change, but the quantum state did.",
+        )
+        timersRef.current.push(
+          window.setTimeout(() => setPhaseNotice(null), PHASE_NOTICE_MS),
+        )
+      }
 
       setGlowing(false)
       setBusy(false)

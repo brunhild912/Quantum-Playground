@@ -6,13 +6,16 @@ import GateInfoPanel from './components/GateInfoPanel'
 import QubitInstrument from './components/QubitInstrument'
 import CompositeStatePanel from './components/CompositeStatePanel'
 import ControlledOperationsPanel from './components/ControlledOperationsPanel'
+import BellStatePreparationPanel from './components/BellStatePreparationPanel'
 import Scene from './components/Scene'
 import { level1MissionConsole } from './content/level1ObservationLog'
 import { JourneyProvider } from './state/JourneyProvider'
 import { useJourney } from './state/journeyContext'
 import { useQubitController } from './hooks/useQubitController'
 import { useCNOTSequence } from './hooks/useCNOTSequence'
+import { useBellPreparationSequence } from './hooks/useBellPreparationSequence'
 import { discoveryReadoutTwoQubits } from './lib/discoveryReadout'
+import type { BellStateId } from './lib/bellStates'
 import {
   compositeFromAmplitudes,
   isApproximatelyEntangled,
@@ -26,10 +29,13 @@ import {
   type MeasurementRecord,
 } from './lib/measurementHistory'
 import type { MeasurementResult } from './hooks/useMeasurementSequence'
+import { easeInOutCubic } from './lib/easing'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const MOBILE_EDU_CARD_DELAY_MS = 2000
 const MOBILE_LAYOUT_MQ = '(max-width: 767.98px)'
+const JOINT_COLLAPSE_MS = 550
+const JOINT_PARTNER_DELAY_MS = 280
 
 function useIsMobileLayout() {
   const [mobile, setMobile] = useState(false)
@@ -54,29 +60,45 @@ function AppInner() {
   const qubitB = useQubitController('B', playground)
 
   const [jointAmps, setJointAmps] = useState<TwoQubitAmplitudes | null>(null)
-  const [cnotDiscovery, setCnotDiscovery] = useState<string | null>(null)
+  const [cnotDiscovery, setCnotDiscovery] = useState<string[] | null>(null)
   const [jointMeasurementResult, setJointMeasurementResult] =
     useState<MeasurementResult | null>(null)
   const [jointMeasurementHistory, setJointMeasurementHistory] = useState<
     MeasurementRecord[]
   >([])
   const [jointMeasurePulse, setJointMeasurePulse] = useState({ A: 0, B: 0 })
+  const [jointMeasureBusy, setJointMeasureBusy] = useState(false)
   const jointMeasurementCountRef = useRef(0)
+  const jointMeasureRafRef = useRef<number | null>(null)
+  const jointMeasureTimersRef = useRef<number[]>([])
 
   const [cnotControl, setCnotControl] = useState<QubitId>('A')
   const [cnotTarget, setCnotTarget] = useState<QubitId>('B')
+  const [bellSelected, setBellSelected] = useState<BellStateId>('phi+')
+  const [entanglementBoost, setEntanglementBoost] = useState(0)
 
   // While CNOT runs, angle tweens must not wipe the joint vector.
   // After CNOT commits angles + amplitudes, skip one product resync.
   const skipNextProductSyncRef = useRef(false)
+  const cnotBusyRef = useRef(false)
+  const qubitBusyRef = useRef({ A: false, B: false })
 
   const onJointAmps = useCallback((amps: TwoQubitAmplitudes) => {
     skipNextProductSyncRef.current = true
     setJointAmps(amps)
   }, [])
 
-  const onCnotDiscovery = useCallback((message: string) => {
-    setCnotDiscovery(message)
+  const onCnotDiscovery = useCallback((message: string | string[]) => {
+    setCnotDiscovery(Array.isArray(message) ? message : [message])
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (jointMeasureRafRef.current != null) {
+        cancelAnimationFrame(jointMeasureRafRef.current)
+      }
+      for (const id of jointMeasureTimersRef.current) window.clearTimeout(id)
+    }
   }, [])
 
   const {
@@ -99,6 +121,62 @@ function AppInner() {
     onDiscovery: onCnotDiscovery,
   })
 
+  cnotBusyRef.current = cnotBusy
+  qubitBusyRef.current = {
+    A: qubitA.controlsLocked,
+    B: qubitB.controlsLocked,
+  }
+
+  const onLinkBoost = useCallback(() => {
+    setEntanglementBoost(1)
+    const started = performance.now()
+    const duration = 900
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - started) / duration)
+      setEntanglementBoost(1 - t)
+      if (t < 1) requestAnimationFrame(tick)
+      else setEntanglementBoost(0)
+    }
+    requestAnimationFrame(tick)
+  }, [])
+
+  const {
+    prepareBellState,
+    busy: bellPrepBusy,
+    readout: bellReadout,
+    dismissReadout: dismissBellReadout,
+    gateHistory: bellHistory,
+  } = useBellPreparationSequence({
+    enabled:
+      playground &&
+      !qubitA.controlsLocked &&
+      !qubitB.controlsLocked &&
+      !cnotBusy &&
+      !jointMeasureBusy,
+    applyH: (qubit, options) => {
+      if (qubit === 'A') qubitA.applyH(options)
+      else qubitB.applyH(options)
+    },
+    applyZ: (qubit, options) => {
+      if (qubit === 'A') qubitA.applyZ(options)
+      else qubitB.applyZ(options)
+    },
+    applyCNOT,
+    isQubitBusy: (qubit) => qubitBusyRef.current[qubit],
+    isCnotBusy: () => cnotBusyRef.current,
+    thetaA: qubitA.theta,
+    phiA: qubitA.phi,
+    thetaB: qubitB.theta,
+    phiB: qubitB.phi,
+    setAnglesA: qubitA.setAngles,
+    setAnglesB: qubitB.setAngles,
+    jointAmps,
+    onJointAmps,
+    clearJointAmps: () => setJointAmps(null),
+    onDiscovery: onCnotDiscovery,
+    onLinkBoost,
+  })
+
   const entangled = useMemo(
     () => (jointAmps ? isApproximatelyEntangled(jointAmps) : false),
     [jointAmps],
@@ -106,7 +184,14 @@ function AppInner() {
 
   const measureJointQubit = useCallback(
     (measured: QubitId) => {
-      if (!jointAmps || cnotBusy || qubitA.controlsLocked || qubitB.controlsLocked) {
+      if (
+        !jointAmps ||
+        cnotBusy ||
+        jointMeasureBusy ||
+        bellPrepBusy ||
+        qubitA.controlsLocked ||
+        qubitB.controlsLocked
+      ) {
         return
       }
 
@@ -121,40 +206,113 @@ function AppInner() {
       const correlatedOutcome =
         sample.correlatedOutcome === 0 ? '|0⟩' : '|1⟩'
 
-      setJointMeasurePulse({ A: 1, B: 1 })
-      window.setTimeout(() => setJointMeasurePulse({ A: 0, B: 0 }), 1000)
+      const fromA = { theta: qubitA.theta, phi: qubitA.phi }
+      const fromB = { theta: qubitB.theta, phi: qubitB.phi }
+      const toMeasured = measured === 'A' ? collapsedA : collapsedB
+      const toPartner = measured === 'A' ? collapsedB : collapsedA
+      const fromMeasured = measured === 'A' ? fromA : fromB
+      const fromPartner = measured === 'A' ? fromB : fromA
+      const setMeasuredAngles =
+        measured === 'A' ? qubitA.setAngles : qubitB.setAngles
+      const setPartnerAngles =
+        measured === 'A' ? qubitB.setAngles : qubitA.setAngles
 
-      qubitA.setAngles(collapsedA.theta, collapsedA.phi)
-      qubitB.setAngles(collapsedB.theta, collapsedB.phi)
-      onJointAmps(sample.collapsed)
-      setCnotDiscovery(
-        `Measured ${measuredLabel}. ${correlatedLabel} collapsed to ${correlatedOutcome}.`,
+      if (jointMeasureRafRef.current != null) {
+        cancelAnimationFrame(jointMeasureRafRef.current)
+      }
+      for (const id of jointMeasureTimersRef.current) window.clearTimeout(id)
+      jointMeasureTimersRef.current = []
+
+      setJointMeasureBusy(true)
+      setJointMeasurementResult(null)
+      setJointMeasurePulse(
+        measured === 'A' ? { A: 1, B: 0 } : { A: 0, B: 1 },
       )
 
-      setJointMeasurementResult({
-        outcome,
-        percent0: sample.probabilityZero,
-        percent1: sample.probabilityOne,
-        registerLabel: measuredLabel,
-        correlatedRegisterLabel: wasEntangled ? correlatedLabel : null,
-        correlatedOutcome: wasEntangled ? correlatedOutcome : null,
-      })
+      const animateAngles = (
+        from: { theta: number; phi: number },
+        to: { theta: number; phi: number },
+        setAngles: (theta: number, phi: number) => void,
+        onDone: () => void,
+      ) => {
+        const started = performance.now()
+        const tick = (now: number) => {
+          const t = Math.min(1, (now - started) / JOINT_COLLAPSE_MS)
+          const eased = easeInOutCubic(t)
+          setAngles(
+            from.theta + (to.theta - from.theta) * eased,
+            from.phi + (to.phi - from.phi) * eased,
+          )
+          if (t < 1) {
+            jointMeasureRafRef.current = requestAnimationFrame(tick)
+            return
+          }
+          jointMeasureRafRef.current = null
+          onDone()
+        }
+        jointMeasureRafRef.current = requestAnimationFrame(tick)
+      }
 
-      jointMeasurementCountRef.current += 1
-      const record = createMeasurementRecord({
-        index: jointMeasurementCountRef.current,
-        probabilityZero: sample.probabilityZero,
-        probabilityOne: sample.probabilityOne,
-        measuredState: outcome,
-        registerLabel: measuredLabel,
-        correlatedRegisterLabel: wasEntangled ? correlatedLabel : null,
-        correlatedMeasuredState: wasEntangled ? correlatedOutcome : null,
+      const finish = () => {
+        skipNextProductSyncRef.current = true
+        qubitA.setAngles(collapsedA.theta, collapsedA.phi)
+        qubitB.setAngles(collapsedB.theta, collapsedB.phi)
+        onJointAmps(sample.collapsed)
+
+        if (wasEntangled) {
+          setCnotDiscovery([
+            'Measuring one qubit also determined the state of the other.',
+          ])
+        } else {
+          setCnotDiscovery([`Measured ${measuredLabel}: ${outcome}.`])
+        }
+
+        setJointMeasurementResult({
+          outcome,
+          percent0: sample.probabilityZero,
+          percent1: sample.probabilityOne,
+          registerLabel: measuredLabel,
+          correlatedRegisterLabel: wasEntangled ? correlatedLabel : null,
+          correlatedOutcome: wasEntangled ? correlatedOutcome : null,
+        })
+
+        jointMeasurementCountRef.current += 1
+        const record = createMeasurementRecord({
+          index: jointMeasurementCountRef.current,
+          probabilityZero: sample.probabilityZero,
+          probabilityOne: sample.probabilityOne,
+          measuredState: outcome,
+          registerLabel: measuredLabel,
+          correlatedRegisterLabel: wasEntangled ? correlatedLabel : null,
+          correlatedMeasuredState: wasEntangled ? correlatedOutcome : null,
+        })
+        setJointMeasurementHistory((prev) => [...prev, record])
+        setJointMeasureBusy(false)
+        setJointMeasurePulse({ A: 0, B: 0 })
+      }
+
+      animateAngles(fromMeasured, toMeasured, setMeasuredAngles, () => {
+        if (!wasEntangled) {
+          skipNextProductSyncRef.current = true
+          setPartnerAngles(toPartner.theta, toPartner.phi)
+          finish()
+          return
+        }
+
+        setJointMeasurePulse(
+          measured === 'A' ? { A: 0.35, B: 1 } : { A: 1, B: 0.35 },
+        )
+        const partnerId = window.setTimeout(() => {
+          animateAngles(fromPartner, toPartner, setPartnerAngles, finish)
+        }, JOINT_PARTNER_DELAY_MS)
+        jointMeasureTimersRef.current.push(partnerId)
       })
-      setJointMeasurementHistory((prev) => [...prev, record])
     },
     [
       cnotBusy,
       jointAmps,
+      jointMeasureBusy,
+      bellPrepBusy,
       onJointAmps,
       qubitA,
       qubitB,
@@ -162,21 +320,33 @@ function AppInner() {
   )
 
   useEffect(() => {
-    if (cnotBusy) return
+    if (cnotBusy || jointMeasureBusy || bellPrepBusy) return
     if (skipNextProductSyncRef.current) {
       skipNextProductSyncRef.current = false
       return
     }
     setJointAmps(null)
-  }, [qubitA.theta, qubitA.phi, qubitB.theta, qubitB.phi, cnotBusy])
+  }, [
+    qubitA.theta,
+    qubitA.phi,
+    qubitB.theta,
+    qubitB.phi,
+    cnotBusy,
+    jointMeasureBusy,
+    bellPrepBusy,
+  ])
 
   const gateReadout =
-    cnotReadout ?? qubitA.gateReadout ?? qubitB.gateReadout
-  const dismissGateReadout = cnotReadout
-    ? dismissCnotReadout
-    : qubitA.gateReadout
-      ? qubitA.dismissGateReadout
-      : qubitB.dismissGateReadout
+    bellPrepBusy
+      ? null
+      : bellReadout ?? cnotReadout ?? qubitA.gateReadout ?? qubitB.gateReadout
+  const dismissGateReadout = bellReadout
+    ? dismissBellReadout
+    : cnotReadout
+      ? dismissCnotReadout
+      : qubitA.gateReadout
+        ? qubitA.dismissGateReadout
+        : qubitB.dismissGateReadout
 
   const result = jointMeasurementResult ?? qubitA.result ?? qubitB.result
   const dismissResult = jointMeasurementResult
@@ -186,8 +356,13 @@ function AppInner() {
       : qubitB.dismissResult
 
   const gateHistory = useMemo(
-    () => [...qubitA.gateHistory, ...qubitB.gateHistory, ...cnotHistory],
-    [qubitA.gateHistory, qubitB.gateHistory, cnotHistory],
+    () => [
+      ...qubitA.gateHistory,
+      ...qubitB.gateHistory,
+      ...cnotHistory,
+      ...bellHistory,
+    ],
+    [qubitA.gateHistory, qubitB.gateHistory, cnotHistory, bellHistory],
   )
 
   const measurementHistory = useMemo(
@@ -208,7 +383,7 @@ function AppInner() {
       { label: qubitA.name, theta: qubitA.theta },
       { label: qubitB.name, theta: qubitB.theta },
     )
-    if (cnotDiscovery) return [cnotDiscovery, ...base]
+    if (cnotDiscovery) return [...cnotDiscovery, ...base]
     return base
   }, [
     cnotDiscovery,
@@ -276,7 +451,11 @@ function AppInner() {
   )
 
   const controlsLocked =
-    qubitA.controlsLocked || qubitB.controlsLocked || cnotBusy
+    qubitA.controlsLocked ||
+    qubitB.controlsLocked ||
+    cnotBusy ||
+    jointMeasureBusy ||
+    bellPrepBusy
 
   useEffect(() => {
     if (phase !== 'transition') return
@@ -369,7 +548,8 @@ function AppInner() {
           phase={phase}
           qubits={playground ? sceneQubits : null}
           stackVertical={mobileLayout}
-          entangled={entangled || Boolean(cnotPulse)}
+          entangled={entangled || Boolean(cnotPulse) || bellPrepBusy}
+          entanglementBoost={entanglementBoost}
         />
       </section>
 
@@ -379,12 +559,12 @@ function AppInner() {
         <div className="instrument-shelf instrument-shelf--dual">
           <QubitInstrument
             qubit={qubitA}
-            locked={cnotBusy}
+            locked={cnotBusy || bellPrepBusy}
             onMeasureOverride={jointAmps ? () => measureJointQubit('A') : undefined}
           />
           <QubitInstrument
             qubit={qubitB}
-            locked={cnotBusy}
+            locked={cnotBusy || bellPrepBusy}
             onMeasureOverride={jointAmps ? () => measureJointQubit('B') : undefined}
           />
           <ControlledOperationsPanel
@@ -397,6 +577,12 @@ function AppInner() {
             }
             disabled={controlsLocked}
             pulseProgress={cnotPulse?.progress ?? null}
+          />
+          <BellStatePreparationPanel
+            selected={bellSelected}
+            onSelect={setBellSelected}
+            onPrepare={() => prepareBellState(bellSelected)}
+            disabled={controlsLocked}
           />
           <CompositeStatePanel
             thetaA={qubitA.theta}

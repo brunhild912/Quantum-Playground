@@ -35,7 +35,7 @@ type UseCNOTSequenceArgs = {
   setAnglesB: (theta: number, phi: number) => void
   jointAmps: TwoQubitAmplitudes | null
   onJointAmps: (amps: TwoQubitAmplitudes) => void
-  onDiscovery: (message: string) => void
+  onDiscovery: (message: string | string[]) => void
 }
 
 export function useCNOTSequence({
@@ -59,6 +59,15 @@ export function useCNOTSequence({
   const rafRef = useRef<number | null>(null)
   const timersRef = useRef<number[]>([])
 
+  const liveRef = useRef({
+    thetaA,
+    phiA,
+    thetaB,
+    phiB,
+    jointAmps,
+  })
+  liveRef.current = { thetaA, phiA, thetaB, phiB, jointAmps }
+
   const clearTimers = useCallback(() => {
     for (const id of timersRef.current) window.clearTimeout(id)
     timersRef.current = []
@@ -79,17 +88,19 @@ export function useCNOTSequence({
   const dismissReadout = useCallback(() => setReadout(null), [])
 
   const applyCNOT = useCallback(
-    (selection: CNOTSelection) => {
+    (selection: CNOTSelection, options?: { silent?: boolean }) => {
       if (!enabled || busy) return
       if (selection.control === selection.target) return
 
+      const silent = options?.silent === true
+      const live = liveRef.current
       const result = runCNOT(
-        thetaA,
-        phiA,
-        thetaB,
-        phiB,
+        live.thetaA,
+        live.phiA,
+        live.thetaB,
+        live.phiB,
         selection,
-        jointAmps,
+        live.jointAmps,
       )
 
       clearTimers()
@@ -137,42 +148,59 @@ export function useCNOTSequence({
         setAnglesA(result.qubitAAfter.theta, result.qubitAAfter.phi)
         setAnglesB(result.qubitBAfter.theta, result.qubitBAfter.phi)
         onJointAmps(result.after)
-        onDiscovery(result.discovery)
 
-        gateCountRef.current += 1
-        setGateHistory((prev) => [
-          ...prev,
-          createCNOTOperationRecord({
-            index: gateCountRef.current,
-            controlLabel: qubitDisplayName(selection.control),
-            targetLabel: qubitDisplayName(selection.target),
-            result: result.logResult,
-            entangled: result.entangled,
-          }),
-        ])
+        if (!silent) {
+          onDiscovery(
+            result.entangled
+              ? [
+                  'Entanglement created.',
+                  'These qubits now share a single quantum state.',
+                ]
+              : result.discovery,
+          )
 
-        setReadout(
-          result.entangled
-            ? {
-                title: 'Entanglement',
-                body: [
-                  'These two qubits are no longer independent.',
-                  'You cannot completely describe one without considering the other.',
-                  'Measuring one qubit immediately determines the outcome of the other — not because information travels between them at the moment of measurement, but because they share a single quantum state.',
-                  'Entanglement is one of the defining features of quantum mechanics and a key resource for quantum computing, communication, and cryptography.',
-                ],
-              }
-            : {
-                title: 'Controlled-NOT (CNOT)',
-                body: [
-                  'The CNOT gate acts on two qubits.',
-                  'One qubit becomes the Control. The other becomes the Target.',
-                  'The Target flips only when the Control is in the |1⟩ state.',
-                  'This is the first gate that links two qubits together.',
-                  'It forms the foundation of quantum algorithms and is the key ingredient for creating entanglement.',
-                ],
-              },
-        )
+          gateCountRef.current += 1
+          setGateHistory((prev) => [
+            ...prev,
+            createCNOTOperationRecord({
+              index: gateCountRef.current,
+              controlLabel: qubitDisplayName(selection.control),
+              targetLabel: qubitDisplayName(selection.target),
+              result: result.logResult,
+              entangled: result.entangled,
+            }),
+          ])
+
+          const cnotCard: CNOTReadout = {
+            title: 'Controlled-NOT (CNOT)',
+            body: [
+              'The CNOT gate acts on two qubits.',
+              'One qubit becomes the Control. The other becomes the Target.',
+              'The Target flips only when the Control is in the |1⟩ state.',
+              'This is the first gate that links two qubits together.',
+              'It forms the foundation of quantum algorithms and is the key ingredient for creating entanglement.',
+            ],
+          }
+
+          const entanglementCard: CNOTReadout = {
+            title: 'Entanglement',
+            body: [
+              'These two qubits are no longer independent.',
+              'Together they form a single quantum state.',
+              'Measuring one qubit immediately determines the outcome of the other—not because information is sent between them at that moment, but because the pair must be described as one quantum system.',
+              'Entanglement is one of the defining features of quantum mechanics and a key resource for quantum computing.',
+            ],
+          }
+
+          // Let the learner see the Bell probabilities / quantum link first.
+          if (result.entangled) {
+            timersRef.current.push(
+              window.setTimeout(() => setReadout(entanglementCard), 1600),
+            )
+          } else {
+            setReadout(cnotCard)
+          }
+        }
 
         setPulse(null)
         setBusy(false)
@@ -189,15 +217,10 @@ export function useCNOTSequence({
       busy,
       clearTimers,
       enabled,
-      jointAmps,
       onDiscovery,
       onJointAmps,
-      phiA,
-      phiB,
       setAnglesA,
       setAnglesB,
-      thetaA,
-      thetaB,
     ],
   )
 

@@ -114,6 +114,27 @@ export function createTGateOperationRecord(index: number): GateOperationRecord {
   }
 }
 
+export function createBellPreparationRecord(input: {
+  index: number
+  bellLabel: string
+  operations: string[]
+}): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-bell-${input.index}-${timestamp}`,
+    index: input.index,
+    kind: 'gate',
+    gate: 'BELL',
+    title: 'Prepared Bell State',
+    rotation: input.operations.join(' → '),
+    result: input.bellLabel,
+    observation: 'Status: Entangled',
+    timestamp,
+    gateSequence: input.operations,
+    registerLabel: input.bellLabel,
+  }
+}
+
 export function createCNOTOperationRecord(input: {
   index: number
   controlLabel: string
@@ -122,19 +143,24 @@ export function createCNOTOperationRecord(input: {
   entangled?: boolean
 }): GateOperationRecord {
   const timestamp = Date.now()
+  const link = `${input.controlLabel} → ${input.targetLabel}`
   return {
     id: `gate-cnot-${input.index}-${timestamp}`,
     index: input.index,
     kind: 'gate',
     gate: 'CNOT',
     title: input.entangled ? 'Created Bell State' : 'Applied CNOT',
-    rotation: `Control: ${input.controlLabel} → Target: ${input.targetLabel}`,
+    rotation: input.entangled
+      ? `H(${input.controlLabel}) → CNOT(${link})`
+      : `Control: ${input.controlLabel} → Target: ${input.targetLabel}`,
     result: input.result,
     observation: input.entangled
-      ? 'Qubits are now entangled.'
+      ? 'Status: Entangled'
       : `Control: ${input.controlLabel}. Target: ${input.targetLabel}.`,
     timestamp,
-    gateSequence: ['CNOT'],
-    registerLabel: `${input.controlLabel} → ${input.targetLabel}`,
+    gateSequence: input.entangled
+      ? [`H(${input.controlLabel})`, `CNOT(${link})`]
+      : ['CNOT'],
+    registerLabel: link,
   }
 }

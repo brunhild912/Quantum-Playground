@@ -88,8 +88,8 @@ export function runCNOT(
     discovery = 'Control was |1⟩. Target flipped.'
     logResult = 'Target flipped.'
   } else if (entangled) {
-    discovery = 'The two qubits are now entangled.'
-    logResult = 'Qubits are now entangled.'
+    discovery = 'Entanglement created.'
+    logResult = 'Status: Entangled'
   } else {
     discovery = 'Control carried |1⟩ amplitude. Target was transformed.'
     logResult = 'Joint state updated (control |1⟩ subspace).'

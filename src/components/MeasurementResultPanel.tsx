@@ -38,7 +38,7 @@ export default function MeasurementResultPanel({
 
       {result.correlatedRegisterLabel && result.correlatedOutcome ? (
         <>
-          <p className="measurement-result-label">Correlated measurement</p>
+          <p className="measurement-result-label">Partner qubit collapsed</p>
           <p className="measurement-result-note">
             {result.correlatedRegisterLabel} = {result.correlatedOutcome}
           </p>
