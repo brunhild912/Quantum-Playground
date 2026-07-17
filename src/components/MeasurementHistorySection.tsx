@@ -121,6 +121,18 @@ function GateEntry({ record }: { record: GateOperationRecord }) {
             <span>Entangled</span>
           </p>
         </>
+      ) : record.gate === 'BELL_MEASURE' ? (
+        <>
+          <p className="measurement-history-label">State</p>
+          <p className="measurement-history-line">
+            <span>{record.rotation}</span>
+          </p>
+
+          <p className="measurement-history-label">Outcome</p>
+          <p className="measurement-history-line">
+            <span>{record.result}</span>
+          </p>
+        </>
       ) : (
         <>
           {record.registerLabel ? (

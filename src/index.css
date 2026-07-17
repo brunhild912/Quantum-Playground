@@ -2173,6 +2173,69 @@ line-height:1.2;
   width: 100%;
 }
 
+.bell-prep-apply--secondary {
+  margin-top: 0.45rem;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(234, 247, 255, 0.78);
+}
+
+.bell-playground-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.bell-experiment {
+  margin-top: 0.75rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bell-experiment-title {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(200, 220, 240, 0.55);
+}
+
+.bell-experiment-empty {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: rgba(200, 220, 240, 0.42);
+}
+
+.bell-experiment-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: rgba(234, 247, 255, 0.82);
+}
+
+.bell-experiment-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(200, 220, 240, 0.5);
+  padding: 0.15rem 0.35rem 0.35rem 0;
+}
+
+.bell-experiment-table td {
+  padding: 0.18rem 0.35rem 0.18rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.bell-experiment-result {
+  letter-spacing: 0.08em;
+}
+
 @media (max-width: 767.98px) {
   .bell-prep-panel {
     flex-shrink: 0;

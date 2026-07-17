@@ -49,6 +49,8 @@ type UseBellPreparationSequenceArgs = {
   onJointAmps: (amps: TwoQubitAmplitudes) => void
   clearJointAmps: () => void
   onDiscovery: (message: string | string[]) => void
+  /** Fired when a Bell state finishes preparing (Level 7F). */
+  onPrepared?: (id: BellStateId) => void
   /** Brief strengthen of the quantum link when prep completes. */
   onLinkBoost?: () => void
 }
@@ -107,6 +109,7 @@ export function useBellPreparationSequence({
   onJointAmps,
   clearJointAmps,
   onDiscovery,
+  onPrepared,
   onLinkBoost,
 }: UseBellPreparationSequenceArgs) {
   const [busy, setBusy] = useState(false)
@@ -291,6 +294,7 @@ export function useBellPreparationSequence({
 
           if (cancelledRef.current) return
 
+          onPrepared?.(id)
           onDiscovery([`Prepared Bell State ${def.label}.`])
           onLinkBoost?.()
 
@@ -334,6 +338,7 @@ export function useBellPreparationSequence({
       isQubitBusy,
       onDiscovery,
       onLinkBoost,
+      onPrepared,
       setAnglesA,
       setAnglesB,
     ],

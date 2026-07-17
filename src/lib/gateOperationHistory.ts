@@ -135,6 +135,27 @@ export function createBellPreparationRecord(input: {
   }
 }
 
+export function createBellMeasurementRecord(input: {
+  index: number
+  bellLabel: string
+  outcome: string
+}): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-bell-measure-${input.index}-${timestamp}`,
+    index: input.index,
+    kind: 'gate',
+    gate: 'BELL_MEASURE',
+    title: 'Measured Bell State',
+    rotation: input.bellLabel,
+    result: input.outcome,
+    observation: `Outcome: ${input.outcome}`,
+    timestamp,
+    gateSequence: [],
+    registerLabel: input.bellLabel,
+  }
+}
+
 export function createCNOTOperationRecord(input: {
   index: number
   controlLabel: string

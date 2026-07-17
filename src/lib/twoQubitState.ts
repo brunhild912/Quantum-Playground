@@ -302,3 +302,55 @@ export function sampleJointMeasurement(
     collapsed,
   }
 }
+
+export type ComputationalBasisBits = '00' | '01' | '10' | '11'
+
+export type FullRegisterMeasurementResult = {
+  bits: ComputationalBasisBits
+  outcomeA: 0 | 1
+  outcomeB: 0 | 1
+  /** Joint probabilities before collapse (raw 0–1). */
+  probabilities: number[]
+  collapsed: TwoQubitAmplitudes
+}
+
+/**
+ * Simultaneous Z⊗Z measurement of both qubits.
+ * Samples from the joint computational-basis distribution — no hardcoded correlations.
+ */
+export function sampleComputationalBasisMeasurement(
+  amps: TwoQubitAmplitudes,
+  random: () => number = Math.random,
+): FullRegisterMeasurementResult {
+  const probs = jointProbabilitiesFromAmplitudes(amps)
+  const r = random()
+  let acc = 0
+  let index = 3
+  for (let i = 0; i < 4; i++) {
+    acc += probs[i]!
+    if (r < acc) {
+      index = i
+      break
+    }
+  }
+
+  const bits = BASES[index]! as ComputationalBasisBits
+  const outcomeA: 0 | 1 = bits[0] === '1' ? 1 : 0
+  const outcomeB: 0 | 1 = bits[1] === '1' ? 1 : 0
+
+  const collapsed: TwoQubitAmplitudes = [
+    complex(0),
+    complex(0),
+    complex(0),
+    complex(0),
+  ]
+  collapsed[index] = complex(1)
+
+  return {
+    bits,
+    outcomeA,
+    outcomeB,
+    probabilities: probs,
+    collapsed,
+  }
+}
