@@ -978,7 +978,7 @@ function AppInner() {
       <LandingOverlay onBeginJourney={beginJourney} hidden={phase !== 'landing'} />
 
       {playground ? (
-        <div className="instrument-shelf instrument-shelf--dual">
+        <div className="instrument-shelf instrument-shelf--dual scrollbar-quantum">
           <QubitInstrument
             qubit={qubitA}
             locked={
