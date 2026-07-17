@@ -1888,6 +1888,21 @@ line-height:1.2;
   color: rgba(234, 247, 255, 0.68);
 }
 
+.composite-state-entangled-badge {
+  flex-shrink: 0;
+  padding: 0.22rem 0.48rem;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 181, 253, 0.35);
+  background: rgba(110, 231, 255, 0.08);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 253, 0.9);
+  box-shadow: 0 0 16px rgba(110, 231, 255, 0.14);
+}
+
 .composite-state-panel-rule {
   height: 1px;
   margin: 0.55rem 0 0.7rem;

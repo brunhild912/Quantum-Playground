@@ -7,6 +7,7 @@ type QubitInstrumentProps = {
   qubit: QubitController
   /** Extra lock (e.g. during CNOT). */
   locked?: boolean
+  onMeasureOverride?: () => void
 }
 
 /**
@@ -16,6 +17,7 @@ type QubitInstrumentProps = {
 export default function QubitInstrument({
   qubit,
   locked = false,
+  onMeasureOverride,
 }: QubitInstrumentProps) {
   const disabled = qubit.controlsLocked || locked
 
@@ -40,13 +42,15 @@ export default function QubitInstrument({
       />
 
       <MeasureButton
-        onMeasure={qubit.measure}
+        onMeasure={onMeasureOverride ?? qubit.measure}
+        onHGate={qubit.applyH}
         onXGate={qubit.applyX}
         onYGate={qubit.applyY}
         onZGate={qubit.applyZ}
         onSGate={qubit.applyS}
         onTGate={qubit.applyT}
         disabled={disabled}
+        hGlowing={qubit.hGlowing}
         xGlowing={qubit.xGlowing}
         yGlowing={qubit.yGlowing}
         zGlowing={qubit.zGlowing}

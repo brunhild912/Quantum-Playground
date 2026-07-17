@@ -4,6 +4,7 @@ import {
   amplitudesNearlyEqual,
   controlOneProbability,
   reducedBlochVector,
+  isApproximatelyEntangled,
   tensorProductAmplitudes,
   type TwoQubitAmplitudes,
 } from '../twoQubitState'
@@ -27,6 +28,7 @@ export type CNOTApplyResult = {
   qubitBAfter: { theta: number; phi: number }
   discovery: string
   logResult: string
+  entangled: boolean
 }
 
 /**
@@ -57,6 +59,7 @@ export function runCNOT(
 
   const aAfter = reducedBlochVector(after, 'A')
   const bAfter = reducedBlochVector(after, 'B')
+  const entangled = isApproximatelyEntangled(after)
 
   const targetBefore =
     selection.target === 'A'
@@ -84,6 +87,9 @@ export function runCNOT(
   } else if (controlOneProb > 0.85 && matchesX) {
     discovery = 'Control was |1⟩. Target flipped.'
     logResult = 'Target flipped.'
+  } else if (entangled) {
+    discovery = 'The two qubits are now entangled.'
+    logResult = 'Qubits are now entangled.'
   } else {
     discovery = 'Control carried |1⟩ amplitude. Target was transformed.'
     logResult = 'Joint state updated (control |1⟩ subspace).'
@@ -101,5 +107,6 @@ export function runCNOT(
     qubitBAfter: { theta: bAfter.theta, phi: bAfter.phi },
     discovery,
     logResult,
+    entangled,
   }
 }

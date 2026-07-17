@@ -35,6 +35,21 @@ export function createXGateOperationRecord(index: number): GateOperationRecord {
   }
 }
 
+export function createHGateOperationRecord(index: number): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-h-${index}-${timestamp}`,
+    index,
+    kind: 'gate',
+    gate: 'H',
+    title: 'Applied Hadamard Gate',
+    rotation: '180° around Hadamard axis',
+    result: 'Superposition prepared.',
+    timestamp,
+    gateSequence: ['H'],
+  }
+}
+
 export function createYGateOperationRecord(index: number): GateOperationRecord {
   const timestamp = Date.now()
   return {
@@ -104,6 +119,7 @@ export function createCNOTOperationRecord(input: {
   controlLabel: string
   targetLabel: string
   result: string
+  entangled?: boolean
 }): GateOperationRecord {
   const timestamp = Date.now()
   return {
@@ -111,10 +127,12 @@ export function createCNOTOperationRecord(input: {
     index: input.index,
     kind: 'gate',
     gate: 'CNOT',
-    title: 'Applied CNOT',
+    title: input.entangled ? 'Created Bell State' : 'Applied CNOT',
     rotation: `Control: ${input.controlLabel} → Target: ${input.targetLabel}`,
     result: input.result,
-    observation: `Control: ${input.controlLabel}. Target: ${input.targetLabel}.`,
+    observation: input.entangled
+      ? 'Qubits are now entangled.'
+      : `Control: ${input.controlLabel}. Target: ${input.targetLabel}.`,
     timestamp,
     gateSequence: ['CNOT'],
     registerLabel: `${input.controlLabel} → ${input.targetLabel}`,

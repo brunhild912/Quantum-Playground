@@ -147,19 +147,32 @@ export function useCNOTSequence({
             controlLabel: qubitDisplayName(selection.control),
             targetLabel: qubitDisplayName(selection.target),
             result: result.logResult,
+            entangled: result.entangled,
           }),
         ])
 
-        setReadout({
-          title: 'Controlled-NOT (CNOT)',
-          body: [
-            'The CNOT gate acts on two qubits.',
-            'One qubit becomes the Control. The other becomes the Target.',
-            'The Target flips only when the Control is in the |1⟩ state.',
-            'This is the first gate that links two qubits together.',
-            'It forms the foundation of quantum algorithms and is the key ingredient for creating entanglement.',
-          ],
-        })
+        setReadout(
+          result.entangled
+            ? {
+                title: 'Entanglement',
+                body: [
+                  'These two qubits are no longer independent.',
+                  'You cannot completely describe one without considering the other.',
+                  'Measuring one qubit immediately determines the outcome of the other — not because information travels between them at the moment of measurement, but because they share a single quantum state.',
+                  'Entanglement is one of the defining features of quantum mechanics and a key resource for quantum computing, communication, and cryptography.',
+                ],
+              }
+            : {
+                title: 'Controlled-NOT (CNOT)',
+                body: [
+                  'The CNOT gate acts on two qubits.',
+                  'One qubit becomes the Control. The other becomes the Target.',
+                  'The Target flips only when the Control is in the |1⟩ state.',
+                  'This is the first gate that links two qubits together.',
+                  'It forms the foundation of quantum algorithms and is the key ingredient for creating entanglement.',
+                ],
+              },
+        )
 
         setPulse(null)
         setBusy(false)

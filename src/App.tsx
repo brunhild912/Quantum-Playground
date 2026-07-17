@@ -13,9 +13,19 @@ import { useJourney } from './state/journeyContext'
 import { useQubitController } from './hooks/useQubitController'
 import { useCNOTSequence } from './hooks/useCNOTSequence'
 import { discoveryReadoutTwoQubits } from './lib/discoveryReadout'
-import { compositeFromAmplitudes } from './lib/twoQubitState'
+import {
+  compositeFromAmplitudes,
+  isApproximatelyEntangled,
+  reducedBlochVector,
+  sampleJointMeasurement,
+} from './lib/twoQubitState'
 import type { TwoQubitAmplitudes } from './lib/twoQubitState'
 import type { QubitId } from './lib/qubitId'
+import {
+  createMeasurementRecord,
+  type MeasurementRecord,
+} from './lib/measurementHistory'
+import type { MeasurementResult } from './hooks/useMeasurementSequence'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const MOBILE_EDU_CARD_DELAY_MS = 2000
@@ -45,6 +55,13 @@ function AppInner() {
 
   const [jointAmps, setJointAmps] = useState<TwoQubitAmplitudes | null>(null)
   const [cnotDiscovery, setCnotDiscovery] = useState<string | null>(null)
+  const [jointMeasurementResult, setJointMeasurementResult] =
+    useState<MeasurementResult | null>(null)
+  const [jointMeasurementHistory, setJointMeasurementHistory] = useState<
+    MeasurementRecord[]
+  >([])
+  const [jointMeasurePulse, setJointMeasurePulse] = useState({ A: 0, B: 0 })
+  const jointMeasurementCountRef = useRef(0)
 
   const [cnotControl, setCnotControl] = useState<QubitId>('A')
   const [cnotTarget, setCnotTarget] = useState<QubitId>('B')
@@ -82,6 +99,68 @@ function AppInner() {
     onDiscovery: onCnotDiscovery,
   })
 
+  const entangled = useMemo(
+    () => (jointAmps ? isApproximatelyEntangled(jointAmps) : false),
+    [jointAmps],
+  )
+
+  const measureJointQubit = useCallback(
+    (measured: QubitId) => {
+      if (!jointAmps || cnotBusy || qubitA.controlsLocked || qubitB.controlsLocked) {
+        return
+      }
+
+      const wasEntangled = isApproximatelyEntangled(jointAmps)
+      const sample = sampleJointMeasurement(jointAmps, measured)
+      const collapsedA = reducedBlochVector(sample.collapsed, 'A')
+      const collapsedB = reducedBlochVector(sample.collapsed, 'B')
+      const measuredLabel = measured === 'A' ? qubitA.name : qubitB.name
+      const correlatedLabel =
+        sample.correlated === 'A' ? qubitA.name : qubitB.name
+      const outcome = sample.outcome === 0 ? '|0⟩' : '|1⟩'
+      const correlatedOutcome =
+        sample.correlatedOutcome === 0 ? '|0⟩' : '|1⟩'
+
+      setJointMeasurePulse({ A: 1, B: 1 })
+      window.setTimeout(() => setJointMeasurePulse({ A: 0, B: 0 }), 1000)
+
+      qubitA.setAngles(collapsedA.theta, collapsedA.phi)
+      qubitB.setAngles(collapsedB.theta, collapsedB.phi)
+      onJointAmps(sample.collapsed)
+      setCnotDiscovery(
+        `Measured ${measuredLabel}. ${correlatedLabel} collapsed to ${correlatedOutcome}.`,
+      )
+
+      setJointMeasurementResult({
+        outcome,
+        percent0: sample.probabilityZero,
+        percent1: sample.probabilityOne,
+        registerLabel: measuredLabel,
+        correlatedRegisterLabel: wasEntangled ? correlatedLabel : null,
+        correlatedOutcome: wasEntangled ? correlatedOutcome : null,
+      })
+
+      jointMeasurementCountRef.current += 1
+      const record = createMeasurementRecord({
+        index: jointMeasurementCountRef.current,
+        probabilityZero: sample.probabilityZero,
+        probabilityOne: sample.probabilityOne,
+        measuredState: outcome,
+        registerLabel: measuredLabel,
+        correlatedRegisterLabel: wasEntangled ? correlatedLabel : null,
+        correlatedMeasuredState: wasEntangled ? correlatedOutcome : null,
+      })
+      setJointMeasurementHistory((prev) => [...prev, record])
+    },
+    [
+      cnotBusy,
+      jointAmps,
+      onJointAmps,
+      qubitA,
+      qubitB,
+    ],
+  )
+
   useEffect(() => {
     if (cnotBusy) return
     if (skipNextProductSyncRef.current) {
@@ -99,10 +178,12 @@ function AppInner() {
       ? qubitA.dismissGateReadout
       : qubitB.dismissGateReadout
 
-  const result = qubitA.result ?? qubitB.result
-  const dismissResult = qubitA.result
-    ? qubitA.dismissResult
-    : qubitB.dismissResult
+  const result = jointMeasurementResult ?? qubitA.result ?? qubitB.result
+  const dismissResult = jointMeasurementResult
+    ? () => setJointMeasurementResult(null)
+    : qubitA.result
+      ? qubitA.dismissResult
+      : qubitB.dismissResult
 
   const gateHistory = useMemo(
     () => [...qubitA.gateHistory, ...qubitB.gateHistory, ...cnotHistory],
@@ -110,8 +191,16 @@ function AppInner() {
   )
 
   const measurementHistory = useMemo(
-    () => [...qubitA.measurementHistory, ...qubitB.measurementHistory],
-    [qubitA.measurementHistory, qubitB.measurementHistory],
+    () => [
+      ...qubitA.measurementHistory,
+      ...qubitB.measurementHistory,
+      ...jointMeasurementHistory,
+    ],
+    [
+      jointMeasurementHistory,
+      qubitA.measurementHistory,
+      qubitB.measurementHistory,
+    ],
   )
 
   const discoveryLines = useMemo(() => {
@@ -143,6 +232,7 @@ function AppInner() {
         phi: qubitA.phi,
         measurementPulse:
           qubitA.pulse ||
+          jointMeasurePulse.A ||
           (cnotPulse?.control === 'A' || cnotPulse?.target === 'A'
             ? 0.35 + (cnotPulse?.progress ?? 0) * 0.4
             : 0),
@@ -156,6 +246,7 @@ function AppInner() {
         phi: qubitB.phi,
         measurementPulse:
           qubitB.pulse ||
+          jointMeasurePulse.B ||
           (cnotPulse?.control === 'B' || cnotPulse?.target === 'B'
             ? 0.35 + (cnotPulse?.progress ?? 0) * 0.4
             : 0),
@@ -171,6 +262,7 @@ function AppInner() {
       qubitA.pulse,
       qubitA.phaseAngle,
       qubitA.phasePulse,
+      jointMeasurePulse.A,
       qubitB.id,
       qubitB.name,
       qubitB.theta,
@@ -178,6 +270,7 @@ function AppInner() {
       qubitB.pulse,
       qubitB.phaseAngle,
       qubitB.phasePulse,
+      jointMeasurePulse.B,
       cnotPulse,
     ],
   )
@@ -276,6 +369,7 @@ function AppInner() {
           phase={phase}
           qubits={playground ? sceneQubits : null}
           stackVertical={mobileLayout}
+          entangled={entangled || Boolean(cnotPulse)}
         />
       </section>
 
@@ -283,8 +377,16 @@ function AppInner() {
 
       {playground ? (
         <div className="instrument-shelf instrument-shelf--dual">
-          <QubitInstrument qubit={qubitA} locked={cnotBusy} />
-          <QubitInstrument qubit={qubitB} locked={cnotBusy} />
+          <QubitInstrument
+            qubit={qubitA}
+            locked={cnotBusy}
+            onMeasureOverride={jointAmps ? () => measureJointQubit('A') : undefined}
+          />
+          <QubitInstrument
+            qubit={qubitB}
+            locked={cnotBusy}
+            onMeasureOverride={jointAmps ? () => measureJointQubit('B') : undefined}
+          />
           <ControlledOperationsPanel
             control={cnotControl}
             target={cnotTarget}
@@ -300,6 +402,7 @@ function AppInner() {
             thetaA={qubitA.theta}
             thetaB={qubitB.theta}
             compositeOverride={compositeOverride}
+            entangled={entangled}
           />
           <div className="instrument-shelf-log">
             <ObservationLog

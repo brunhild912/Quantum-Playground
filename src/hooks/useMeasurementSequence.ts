@@ -13,6 +13,8 @@ export type MeasurementResult = {
   percent0: number
   percent1: number
   registerLabel?: string | null
+  correlatedRegisterLabel?: string | null
+  correlatedOutcome?: MeasurementOutcome | null
 }
 
 const COLLAPSE_MS = 550

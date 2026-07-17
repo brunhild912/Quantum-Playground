@@ -56,6 +56,16 @@ function MeasurementEntry({ record }: { record: MeasurementRecord }) {
         </>
       ) : null}
 
+      {record.correlatedRegisterLabel && record.correlatedMeasuredState ? (
+        <>
+          <p className="measurement-history-label">Correlated measurement</p>
+          <p className="measurement-history-line">
+            <span>{record.correlatedRegisterLabel}</span>
+            <span>{record.correlatedMeasuredState}</span>
+          </p>
+        </>
+      ) : null}
+
       <p className="measurement-history-time">{relative}</p>
     </div>
   )

@@ -195,6 +195,81 @@ function DualFraming({ enabled }: { enabled: boolean }) {
   return null
 }
 
+function EntanglementLink({
+  a,
+  b,
+  active,
+}: {
+  a: { x: number; y: number }
+  b: { x: number; y: number }
+  active: boolean
+}) {
+  const groupRef = useRef<THREE.Group>(null)
+  const markerRef = useRef<THREE.Mesh>(null)
+  const matRef = useRef<THREE.LineBasicMaterial>(null)
+
+  useFrame((state) => {
+    const group = groupRef.current
+    const marker = markerRef.current
+    const mat = matRef.current
+    if (!group || !marker || !mat) return
+
+    const pulse = active ? 0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 3.2) : 0
+    mat.opacity = active ? 0.24 + pulse * 0.18 : 0
+
+    const t = (state.clock.elapsedTime * 0.28) % 1
+    marker.position.set(
+      a.x + (b.x - a.x) * t,
+      SPHERE_CENTER_Y + a.y + (b.y - a.y) * t,
+      0,
+    )
+    marker.visible = active
+  })
+
+  if (!active) return null
+
+  return (
+    <group ref={groupRef} renderOrder={7}>
+      <line>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[
+              new Float32Array([
+                a.x,
+                SPHERE_CENTER_Y + a.y,
+                0,
+                b.x,
+                SPHERE_CENTER_Y + b.y,
+                0,
+              ]),
+              3,
+            ]}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial
+          ref={matRef}
+          color="#8ee8ff"
+          transparent
+          opacity={0.25}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </line>
+      <mesh ref={markerRef}>
+        <sphereGeometry args={[0.035, 12, 12]} />
+        <meshBasicMaterial
+          color="#c4b5fd"
+          transparent
+          opacity={0.75}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </group>
+  )
+}
+
 export default function Scene({
   phase,
   qubit,
@@ -203,6 +278,7 @@ export default function Scene({
   phasePulse = 0,
   qubits,
   stackVertical = false,
+  entangled = false,
 }: {
   phase: JourneyPhase
   /** Legacy single-qubit view (landing / transition). */
@@ -214,6 +290,8 @@ export default function Scene({
   qubits?: SceneQubitView[] | null
   /** Mobile: stack spheres vertically instead of side-by-side. */
   stackVertical?: boolean
+  /** Level 7D: show a subtle quantum link between the two spheres. */
+  entangled?: boolean
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const controlsEnabled = phase === 'playground' || phase === 'landing'
@@ -308,6 +386,7 @@ export default function Scene({
             phase={qubits![1]!.phase ?? 0}
             phasePulse={qubits![1]!.phasePulse ?? 0}
           />
+          <EntanglementLink a={offsetA} b={offsetB} active={entangled} />
           <DualFraming enabled />
         </>
       ) : (

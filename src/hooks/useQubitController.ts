@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useQubitState } from './useQubitState'
 import { usePhaseLayer } from './usePhaseLayer'
 import { useMeasurementSequence } from './useMeasurementSequence'
+import { useHGateSequence } from './useHGateSequence'
 import { useXGateSequence } from './useXGateSequence'
 import { useYGateSequence } from './useYGateSequence'
 import { useZGateSequence } from './useZGateSequence'
@@ -34,6 +35,20 @@ export function useQubitController(id: QubitId, playground: boolean) {
   } = usePhaseLayer()
 
   const {
+    applyH,
+    busy: hBusy,
+    glowing: hGlowing,
+    readout: hReadout,
+    dismissReadout: dismissHReadout,
+    gateHistory: hHistory,
+  } = useHGateSequence({
+    theta,
+    phi,
+    setAngles,
+    enabled: playground,
+  })
+
+  const {
     applyX,
     busy: xBusy,
     glowing: xGlowing,
@@ -44,7 +59,7 @@ export function useQubitController(id: QubitId, playground: boolean) {
     theta,
     phi,
     setAngles,
-    enabled: playground,
+    enabled: playground && !hBusy,
   })
 
   const {
@@ -58,7 +73,7 @@ export function useQubitController(id: QubitId, playground: boolean) {
     theta,
     phi,
     setAngles,
-    enabled: playground && !xBusy,
+    enabled: playground && !hBusy && !xBusy,
   })
 
   const {
@@ -70,7 +85,7 @@ export function useQubitController(id: QubitId, playground: boolean) {
     gateHistory: zHistory,
     phaseNotice: zPhaseNotice,
   } = useZGateSequence({
-    enabled: playground && !xBusy && !yBusy,
+    enabled: playground && !hBusy && !xBusy && !yBusy,
     animatePhaseAdvance,
   })
 
@@ -83,7 +98,7 @@ export function useQubitController(id: QubitId, playground: boolean) {
     gateHistory: sHistory,
     phaseNotice: sPhaseNotice,
   } = useSGateSequence({
-    enabled: playground && !xBusy && !yBusy && !zBusy,
+    enabled: playground && !hBusy && !xBusy && !yBusy && !zBusy,
     animatePhaseAdvance,
   })
 
@@ -96,14 +111,15 @@ export function useQubitController(id: QubitId, playground: boolean) {
     gateHistory: tHistory,
     phaseNotice: tPhaseNotice,
   } = useTGateSequence({
-    enabled: playground && !xBusy && !yBusy && !zBusy && !sBusy,
+    enabled: playground && !hBusy && !xBusy && !yBusy && !zBusy && !sBusy,
     animatePhaseAdvance,
   })
 
-  const gateBusy = xBusy || yBusy || zBusy || sBusy || tBusy
+  const gateBusy = hBusy || xBusy || yBusy || zBusy || sBusy || tBusy
   const phaseNotice = tPhaseNotice ?? sPhaseNotice ?? zPhaseNotice
 
-  const rawGateReadout = tReadout ?? sReadout ?? yReadout ?? zReadout ?? xReadout
+  const rawGateReadout =
+    tReadout ?? sReadout ?? yReadout ?? zReadout ?? xReadout ?? hReadout
   const dismissGateReadout = tReadout
     ? dismissTReadout
     : sReadout
@@ -112,7 +128,9 @@ export function useQubitController(id: QubitId, playground: boolean) {
         ? dismissYReadout
         : zReadout
           ? dismissZReadout
-          : dismissXReadout
+          : xReadout
+            ? dismissXReadout
+            : dismissHReadout
 
   const gateReadout: QubitGateReadout | null = useMemo(() => {
     if (!rawGateReadout) return null
@@ -124,13 +142,13 @@ export function useQubitController(id: QubitId, playground: boolean) {
 
   const gateHistory: GateOperationRecord[] = useMemo(
     () =>
-      [...xHistory, ...yHistory, ...zHistory, ...sHistory, ...tHistory].map(
+      [...hHistory, ...xHistory, ...yHistory, ...zHistory, ...sHistory, ...tHistory].map(
         (record) => ({
           ...record,
           registerLabel: name,
         }),
       ),
-    [xHistory, yHistory, zHistory, sHistory, tHistory, name],
+    [hHistory, xHistory, yHistory, zHistory, sHistory, tHistory, name],
   )
 
   const { measure, busy: measureBusy, pulse, result, dismissResult, history } =
@@ -163,12 +181,14 @@ export function useQubitController(id: QubitId, playground: boolean) {
     phaseAngle,
     phasePulse,
     phaseNotice,
+    applyH,
     applyX,
     applyY,
     applyZ,
     applyS,
     applyT,
     measure,
+    hGlowing,
     xGlowing,
     yGlowing,
     zGlowing,

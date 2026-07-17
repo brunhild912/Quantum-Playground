@@ -11,6 +11,7 @@ type CompositeStatePanelProps = {
   thetaB: number
   /** When set (e.g. after CNOT), shows vector-based joint probabilities. */
   compositeOverride?: CompositeQuantumState | null
+  entangled?: boolean
 }
 
 function segmentCount(percent: number): number {
@@ -61,6 +62,7 @@ export default function CompositeStatePanel({
   thetaA,
   thetaB,
   compositeOverride = null,
+  entangled = false,
 }: CompositeStatePanelProps) {
   const composite = useMemo(
     () => compositeOverride ?? compositeFromIndependentQubits(thetaA, thetaB),
@@ -75,6 +77,9 @@ export default function CompositeStatePanel({
     >
       <header className="composite-state-panel-header">
         <h2 className="composite-state-panel-title">Composite Quantum System</h2>
+        {entangled ? (
+          <span className="composite-state-entangled-badge">Entangled</span>
+        ) : null}
       </header>
 
       <div className="composite-state-panel-rule" aria-hidden="true" />

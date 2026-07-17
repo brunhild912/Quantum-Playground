@@ -36,6 +36,15 @@ export default function MeasurementResultPanel({
       ) : null}
       <p className="measurement-result-outcome">{result.outcome}</p>
 
+      {result.correlatedRegisterLabel && result.correlatedOutcome ? (
+        <>
+          <p className="measurement-result-label">Correlated measurement</p>
+          <p className="measurement-result-note">
+            {result.correlatedRegisterLabel} = {result.correlatedOutcome}
+          </p>
+        </>
+      ) : null}
+
       <p className="measurement-result-label">Previous probabilities</p>
       <ul className="measurement-result-probs">
         <li>

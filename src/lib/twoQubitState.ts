@@ -2,6 +2,7 @@ import {
   cFromPolar,
   cMag2,
   cMul,
+  cScale,
   cAlmostEqual,
   complex,
   type Complex,
@@ -15,6 +16,16 @@ import {
 
 /** Amplitudes in order |00⟩, |01⟩, |10⟩, |11⟩ (A then B). */
 export type TwoQubitAmplitudes = [Complex, Complex, Complex, Complex]
+
+export type JointMeasurementResult = {
+  measured: QubitId
+  outcome: 0 | 1
+  correlated: QubitId
+  correlatedOutcome: 0 | 1
+  probabilityZero: number
+  probabilityOne: number
+  collapsed: TwoQubitAmplitudes
+}
 
 const BASES: TwoQubitBasis[] = ['00', '01', '10', '11']
 
@@ -178,7 +189,8 @@ export function reducedBlochVector(
   const y = stdZ
   const z = stdY
   const length = Math.hypot(x, y, z)
-  const { theta, phi } = cartesianToSpherical(x, y, z)
+  const { theta, phi } =
+    length < 1e-8 ? { theta: Math.PI / 2, phi: 0 } : cartesianToSpherical(x, y, z)
   return { x, y, z, length, theta, phi }
 }
 
@@ -190,4 +202,50 @@ export function isApproximatelyEntangled(
   const left = cMul(amps[0], amps[3])
   const right = cMul(amps[1], amps[2])
   return !cAlmostEqual(left, right, eps)
+}
+
+export function sampleJointMeasurement(
+  amps: TwoQubitAmplitudes,
+  measured: QubitId,
+  random: () => number = Math.random,
+): JointMeasurementResult {
+  const p0 =
+    measured === 'A'
+      ? cMag2(amps[0]) + cMag2(amps[1])
+      : cMag2(amps[0]) + cMag2(amps[2])
+  const p1 = Math.max(0, 1 - p0)
+  const outcome: 0 | 1 = random() < p0 ? 0 : 1
+  const norm = Math.sqrt(outcome === 0 ? p0 : p1)
+
+  const collapsed: TwoQubitAmplitudes =
+    norm < 1e-12
+      ? [complex(1), complex(0), complex(0), complex(0)]
+      : measured === 'A'
+        ? outcome === 0
+          ? [cScale(amps[0], 1 / norm), cScale(amps[1], 1 / norm), complex(0), complex(0)]
+          : [complex(0), complex(0), cScale(amps[2], 1 / norm), cScale(amps[3], 1 / norm)]
+        : outcome === 0
+          ? [cScale(amps[0], 1 / norm), complex(0), cScale(amps[2], 1 / norm), complex(0)]
+          : [complex(0), cScale(amps[1], 1 / norm), complex(0), cScale(amps[3], 1 / norm)]
+
+  const probs = jointProbabilitiesFromAmplitudes(collapsed)
+  const correlated: QubitId = measured === 'A' ? 'B' : 'A'
+  const correlatedOutcome: 0 | 1 =
+    correlated === 'A'
+      ? probs[2]! + probs[3]! > probs[0]! + probs[1]!
+        ? 1
+        : 0
+      : probs[1]! + probs[3]! > probs[0]! + probs[2]!
+        ? 1
+        : 0
+
+  return {
+    measured,
+    outcome,
+    correlated,
+    correlatedOutcome,
+    probabilityZero: Math.round(p0 * 100),
+    probabilityOne: 100 - Math.round(p0 * 100),
+    collapsed,
+  }
 }

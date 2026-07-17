@@ -21,6 +21,9 @@ export type MeasurementRecord = {
   batchId?: string | null
   /** Future: two-qubit / register label. */
   registerLabel?: string | null
+  /** Level 7D: correlated collapse in an entangled two-qubit state. */
+  correlatedRegisterLabel?: string | null
+  correlatedMeasuredState?: MeasurementOutcome | null
 }
 
 export function createMeasurementRecord(input: {
@@ -30,6 +33,8 @@ export function createMeasurementRecord(input: {
   measuredState: MeasurementOutcome
   timestamp?: number
   registerLabel?: string | null
+  correlatedRegisterLabel?: string | null
+  correlatedMeasuredState?: MeasurementOutcome | null
 }): MeasurementRecord {
   const timestamp = input.timestamp ?? Date.now()
   return {
@@ -43,6 +48,8 @@ export function createMeasurementRecord(input: {
     gateSequence: [],
     batchId: null,
     registerLabel: input.registerLabel ?? null,
+    correlatedRegisterLabel: input.correlatedRegisterLabel ?? null,
+    correlatedMeasuredState: input.correlatedMeasuredState ?? null,
   }
 }
 
