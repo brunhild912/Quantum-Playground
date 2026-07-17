@@ -1773,6 +1773,14 @@ line-height:1.2;
   .instrument-shelf--dual .bell-prep-panel {
     grid-column: 1 / -1;
   }
+
+  .instrument-shelf--dual .teleport-panel {
+    grid-column: 1 / -1;
+  }
+
+  .instrument-shelf--dual .bell-corr-lab {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 767.98px) {
@@ -2238,6 +2246,303 @@ line-height:1.2;
 
 @media (max-width: 767.98px) {
   .bell-prep-panel {
+    flex-shrink: 0;
+  }
+
+  .teleport-panel {
+    flex-shrink: 0;
+  }
+}
+
+/* Level 7G — Quantum Teleportation (additive) */
+.teleport-panel {
+  width: 100%;
+  padding: 0.75rem 0.85rem 0.85rem;
+  border-radius: 1rem;
+  background: rgba(8, 18, 35, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(120, 210, 255, 0.06);
+}
+
+.teleport-panel-header {
+  display: flex;
+  align-items: baseline;
+}
+
+.teleport-panel-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.68);
+}
+
+.teleport-panel-rule {
+  height: 1px;
+  margin: 0.55rem 0 0.65rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.teleport-panel-hint {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: rgba(200, 220, 240, 0.5);
+}
+
+.teleport-classical {
+  margin-bottom: 0.65rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.55rem;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.teleport-classical-label {
+  margin: 0 0 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(253, 230, 138, 0.65);
+}
+
+.teleport-classical-bits {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  color: rgba(254, 243, 199, 0.95);
+}
+
+.teleport-panel-apply {
+  margin-top: 0.55rem;
+  width: 100%;
+}
+
+.teleport-panel-apply--secondary {
+  margin-top: 0.45rem;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(234, 247, 255, 0.78);
+}
+
+/* Level 7H — Bell Correlation Lab (additive) */
+.bell-corr-lab {
+  width: 100%;
+  padding: 0.65rem 0.85rem 0.75rem;
+  border-radius: 1rem;
+  background: rgba(8, 18, 35, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(120, 210, 255, 0.06);
+}
+
+.bell-corr-lab-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.15rem 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+}
+
+.bell-corr-lab-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(234, 247, 255, 0.68);
+}
+
+.bell-corr-lab-chevron {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 1.5px solid rgba(200, 220, 240, 0.55);
+  border-bottom: 1.5px solid rgba(200, 220, 240, 0.55);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.bell-corr-lab--open .bell-corr-lab-chevron {
+  transform: rotate(225deg);
+  margin-top: 0.2rem;
+}
+
+.bell-corr-lab-rule {
+  height: 1px;
+  margin: 0.45rem 0 0.6rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bell-corr-lab-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.65rem;
+}
+
+.bell-corr-lab-meta-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(200, 220, 240, 0.5);
+}
+
+.bell-corr-lab-meta-value {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: rgba(234, 247, 255, 0.9);
+}
+
+.bell-corr-lab-section-label {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(200, 220, 240, 0.55);
+}
+
+.bell-corr-lab-empty {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: rgba(200, 220, 240, 0.42);
+}
+
+.bell-corr-lab-table-wrap {
+  max-height: 8.5rem;
+  overflow-y: auto;
+  margin-bottom: 0.65rem;
+}
+
+.bell-corr-lab-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: rgba(234, 247, 255, 0.82);
+}
+
+.bell-corr-lab-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(200, 220, 240, 0.5);
+  padding: 0.15rem 0.35rem 0.35rem 0;
+  position: sticky;
+  top: 0;
+  background: rgba(8, 18, 35, 0.92);
+}
+
+.bell-corr-lab-table td {
+  padding: 0.2rem 0.35rem 0.2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  letter-spacing: 0.06em;
+}
+
+.bell-corr-lab-row--flash td {
+  color: rgba(186, 230, 253, 0.98);
+  background: rgba(125, 211, 252, 0.08);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.bell-corr-lab-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.7rem;
+}
+
+.bell-corr-lab-stat-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: rgba(220, 235, 250, 0.72);
+}
+
+.bell-corr-lab-bar {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.bell-corr-lab-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(125, 211, 252, 0.55),
+    rgba(165, 243, 252, 0.85)
+  );
+  transition: width 0.35s ease;
+}
+
+.bell-corr-lab-bar-fill--opp {
+  background: linear-gradient(
+    90deg,
+    rgba(251, 191, 36, 0.45),
+    rgba(253, 230, 138, 0.8)
+  );
+}
+
+.bell-corr-lab-total {
+  margin: 0.1rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(200, 220, 240, 0.5);
+}
+
+.bell-corr-lab-total strong {
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(234, 247, 255, 0.85);
+}
+
+.bell-corr-lab-btn {
+  margin-top: 0.35rem;
+  width: 100%;
+}
+
+.bell-corr-lab-btn--secondary {
+  margin-top: 0.4rem;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(234, 247, 255, 0.78);
+}
+
+@media (max-width: 767.98px) {
+  .bell-corr-lab {
     flex-shrink: 0;
   }
 }

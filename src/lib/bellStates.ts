@@ -148,3 +148,41 @@ export function bellCorrelationDiscovery(id: BellStateId): string[] {
     'The outcomes are still random, yet the qubits always disagree.',
   ]
 }
+
+/**
+ * Pattern messages from measured outcomes (not hardcoded by Bell id).
+ */
+export function correlationPatternFromOutcomes(
+  trials: { alice: 0 | 1; bob: 0 | 1 }[],
+): string[] | null {
+  if (trials.length < 5) return null
+  const agree = trials.filter((t) => t.alice === t.bob).length
+  const opposite = trials.length - agree
+  if (agree === trials.length) {
+    return ['Pattern detected:', 'Measurements always agree.']
+  }
+  if (opposite === trials.length) {
+    return ['Pattern detected:', 'Measurements always disagree.']
+  }
+  if (agree / trials.length >= 0.85) {
+    return ['Pattern detected:', 'Measurements usually agree.']
+  }
+  if (opposite / trials.length >= 0.85) {
+    return ['Pattern detected:', 'Measurements usually disagree.']
+  }
+  return null
+}
+
+export function correlationStats(
+  trials: { alice: 0 | 1; bob: 0 | 1 }[],
+): { agreementPercent: number; oppositePercent: number } {
+  if (trials.length === 0) {
+    return { agreementPercent: 0, oppositePercent: 0 }
+  }
+  const agree = trials.filter((t) => t.alice === t.bob).length
+  const agreementPercent = Math.round((agree / trials.length) * 100)
+  return {
+    agreementPercent,
+    oppositePercent: 100 - agreementPercent,
+  }
+}

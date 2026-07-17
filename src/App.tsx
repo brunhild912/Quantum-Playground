@@ -7,6 +7,9 @@ import QubitInstrument from './components/QubitInstrument'
 import CompositeStatePanel from './components/CompositeStatePanel'
 import ControlledOperationsPanel from './components/ControlledOperationsPanel'
 import BellStatePreparationPanel from './components/BellStatePreparationPanel'
+import BellCorrelationLab from './components/BellCorrelationLab'
+import type { CorrelationTrial } from './components/BellCorrelationLab'
+import TeleportationPanel from './components/TeleportationPanel'
 import Scene from './components/Scene'
 import { level1MissionConsole } from './content/level1ObservationLog'
 import { JourneyProvider } from './state/JourneyProvider'
@@ -14,10 +17,13 @@ import { useJourney } from './state/journeyContext'
 import { useQubitController } from './hooks/useQubitController'
 import { useCNOTSequence } from './hooks/useCNOTSequence'
 import { useBellPreparationSequence } from './hooks/useBellPreparationSequence'
+import { useTeleportationSequence } from './hooks/useTeleportationSequence'
 import { discoveryReadoutTwoQubits } from './lib/discoveryReadout'
 import {
   bellCorrelationDiscovery,
   buildBellAmplitudes,
+  correlationPatternFromOutcomes,
+  correlationStats,
   getBellState,
   type BellStateId,
 } from './lib/bellStates'
@@ -35,6 +41,7 @@ import {
   type MeasurementRecord,
 } from './lib/measurementHistory'
 import {
+  createBellCorrelationExperimentRecord,
   createBellMeasurementRecord,
   type GateOperationRecord,
 } from './lib/gateOperationHistory'
@@ -52,6 +59,11 @@ const BELL_DISCOVERY_AFTER = 3
 const BELL_EDU_AFTER = 5
 const BELL_RESTORE_DELAY_MS = 650
 const BELL_EDU_DELAY_MS = 1200
+const CORR_BATCH_SIZE = 10
+const CORR_TRIAL_GAP_MS = 140
+const CORR_HIGHLIGHT_MS = 320
+const CORR_EDU_DELAY_MS = 900
+const CORR_TRIAL_LIMIT = 40
 
 function useIsMobileLayout() {
   const [mobile, setMobile] = useState(false)
@@ -103,9 +115,20 @@ function AppInner() {
     title: string
     body: string[]
   } | null>(null)
+  const [corrTrials, setCorrTrials] = useState<CorrelationTrial[]>([])
+  const [corrHistory, setCorrHistory] = useState<GateOperationRecord[]>([])
+  const [corrBusy, setCorrBusy] = useState(false)
+  const [corrEduReadout, setCorrEduReadout] = useState<{
+    title: string
+    body: string[]
+  } | null>(null)
   const bellTrialCountRef = useRef(0)
   const bellEduShownRef = useRef(false)
   const bellRestoreTimerRef = useRef<number | null>(null)
+  const corrEduShownRef = useRef(false)
+  const corrBatchCountRef = useRef(0)
+  const corrTimersRef = useRef<number[]>([])
+  const corrCancelledRef = useRef(false)
 
   // While CNOT runs, angle tweens must not wipe the joint vector.
   // After CNOT commits angles + amplitudes, skip one product resync.
@@ -131,6 +154,7 @@ function AppInner() {
       if (bellRestoreTimerRef.current != null) {
         window.clearTimeout(bellRestoreTimerRef.current)
       }
+      for (const id of corrTimersRef.current) window.clearTimeout(id)
     }
   }, [])
 
@@ -211,6 +235,37 @@ function AppInner() {
     onLinkBoost,
   })
 
+  const onTeleportDiscovery = useCallback((message: string | string[]) => {
+    if (Array.isArray(message) && message.length === 0) {
+      setCnotDiscovery(null)
+      return
+    }
+    setCnotDiscovery(Array.isArray(message) ? message : [message])
+  }, [])
+
+  const {
+    active: teleportActive,
+    busy: teleportBusy,
+    scene: teleportScene,
+    classicalBits: teleportClassicalBits,
+    readout: teleportReadout,
+    dismissReadout: dismissTeleportReadout,
+    gateHistory: teleportHistory,
+    startTeleportation,
+    resetTeleport,
+  } = useTeleportationSequence({
+    enabled:
+      playground &&
+      !qubitA.controlsLocked &&
+      !qubitB.controlsLocked &&
+      !cnotBusy &&
+      !jointMeasureBusy &&
+      !bellPrepBusy,
+    learnerTheta: qubitA.theta,
+    learnerPhi: qubitA.phi,
+    onDiscovery: onTeleportDiscovery,
+  })
+
   const entangled = useMemo(
     () => (jointAmps ? isApproximatelyEntangled(jointAmps) : false),
     [jointAmps],
@@ -223,6 +278,7 @@ function AppInner() {
         cnotBusy ||
         jointMeasureBusy ||
         bellPrepBusy ||
+        teleportBusy ||
         qubitA.controlsLocked ||
         qubitB.controlsLocked
       ) {
@@ -347,6 +403,7 @@ function AppInner() {
       jointAmps,
       jointMeasureBusy,
       bellPrepBusy,
+      teleportBusy,
       onJointAmps,
       qubitA,
       qubitB,
@@ -373,6 +430,7 @@ function AppInner() {
       cnotBusy ||
       jointMeasureBusy ||
       bellPrepBusy ||
+      corrBusy ||
       qubitA.controlsLocked ||
       qubitB.controlsLocked
     ) {
@@ -513,8 +571,149 @@ function AppInner() {
     setCnotDiscovery(null)
   }, [])
 
+  const corrStats = useMemo(() => correlationStats(corrTrials), [corrTrials])
+
+  const clearCorrelationLab = useCallback(() => {
+    corrCancelledRef.current = true
+    for (const id of corrTimersRef.current) window.clearTimeout(id)
+    corrTimersRef.current = []
+    setCorrBusy(false)
+    setCorrTrials([])
+    setCorrEduReadout(null)
+    corrEduShownRef.current = false
+  }, [])
+
+  const runCorrelationBatch = useCallback(() => {
+    if (
+      !preparedBellId ||
+      corrBusy ||
+      cnotBusy ||
+      jointMeasureBusy ||
+      bellPrepBusy ||
+      teleportBusy ||
+      qubitA.controlsLocked ||
+      qubitB.controlsLocked
+    ) {
+      return
+    }
+
+    const bellId = preparedBellId
+    const bellLabel = getBellState(bellId).label
+    corrCancelledRef.current = false
+    setCorrBusy(true)
+
+    const batchResults: { alice: 0 | 1; bob: 0 | 1 }[] = []
+
+    const runOne = (i: number) => {
+      if (corrCancelledRef.current) {
+        setCorrBusy(false)
+        return
+      }
+
+      // Genuine sample from the prepared Bell amplitudes (same restoration source).
+      const amps = buildBellAmplitudes(bellId)
+      const sample = sampleComputationalBasisMeasurement(amps)
+      const alice = sample.outcomeA
+      const bob = sample.outcomeB
+      batchResults.push({ alice, bob })
+
+      const id = `corr-${Date.now()}-${i}-${sample.bits}`
+      setCorrTrials((prev) => {
+        const next: CorrelationTrial[] = [
+          ...prev.map((t) => ({ ...t, highlight: false })),
+          { id, alice, bob, highlight: true },
+        ]
+        return next.length > CORR_TRIAL_LIMIT
+          ? next.slice(next.length - CORR_TRIAL_LIMIT)
+          : next
+      })
+
+      // Brief pulse so the learner sees each trial land.
+      setJointMeasurePulse({ A: 0.55, B: 0.55 })
+      const pulseOff = window.setTimeout(() => {
+        setJointMeasurePulse({ A: 0, B: 0 })
+      }, CORR_HIGHLIGHT_MS)
+      corrTimersRef.current.push(pulseOff)
+
+      const clearFlash = window.setTimeout(() => {
+        setCorrTrials((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, highlight: false } : t)),
+        )
+      }, CORR_HIGHLIGHT_MS + 80)
+      corrTimersRef.current.push(clearFlash)
+
+      // Restore Bell state after every measurement (Bell Playground path).
+      restorePreparedBell(bellId)
+
+      if (i + 1 < CORR_BATCH_SIZE) {
+        const nextId = window.setTimeout(() => runOne(i + 1), CORR_TRIAL_GAP_MS)
+        corrTimersRef.current.push(nextId)
+        return
+      }
+
+      // Batch complete — stats from actual outcomes.
+      const pattern = correlationPatternFromOutcomes(batchResults)
+      if (pattern) setCnotDiscovery(pattern)
+
+      const batchStats = correlationStats(batchResults)
+      corrBatchCountRef.current += 1
+      setCorrHistory((prev) => [
+        ...prev,
+        createBellCorrelationExperimentRecord({
+          index: corrBatchCountRef.current,
+          bellLabel,
+          trials: batchResults.length,
+          agreementPercent: batchStats.agreementPercent,
+          oppositePercent: batchStats.oppositePercent,
+        }),
+      ])
+
+      if (!corrEduShownRef.current) {
+        corrEduShownRef.current = true
+        const eduId = window.setTimeout(() => {
+          setCorrEduReadout({
+            title: 'Bell Correlation Lab',
+            body: [
+              'Bell states are not defined only by entanglement.',
+              'They are also distinguished by how measurement outcomes are correlated.',
+              'Some Bell states always produce matching results.',
+              'Others always produce opposite results.',
+              'The correlation emerges from repeated experiments rather than a single measurement.',
+            ],
+          })
+        }, CORR_EDU_DELAY_MS)
+        corrTimersRef.current.push(eduId)
+      }
+
+      setCorrBusy(false)
+    }
+
+    // Ensure we start from a fresh prepared Bell pair.
+    restorePreparedBell(bellId)
+    const startId = window.setTimeout(() => runOne(0), 60)
+    corrTimersRef.current.push(startId)
+  }, [
+    bellPrepBusy,
+    cnotBusy,
+    corrBusy,
+    jointMeasureBusy,
+    preparedBellId,
+    qubitA.controlsLocked,
+    qubitB.controlsLocked,
+    restorePreparedBell,
+    teleportBusy,
+  ])
+
   useEffect(() => {
-    if (cnotBusy || jointMeasureBusy || bellPrepBusy) return
+    if (
+      cnotBusy ||
+      jointMeasureBusy ||
+      bellPrepBusy ||
+      teleportBusy ||
+      corrBusy
+    ) {
+      return
+    }
     if (skipNextProductSyncRef.current) {
       skipNextProductSyncRef.current = false
       return
@@ -529,25 +728,33 @@ function AppInner() {
     cnotBusy,
     jointMeasureBusy,
     bellPrepBusy,
+    teleportBusy,
+    corrBusy,
   ])
 
   const gateReadout =
-    bellPrepBusy
+    bellPrepBusy || teleportBusy || corrBusy
       ? null
-      : bellPlaygroundReadout ??
+      : corrEduReadout ??
+        teleportReadout ??
+        bellPlaygroundReadout ??
         bellReadout ??
         cnotReadout ??
         qubitA.gateReadout ??
         qubitB.gateReadout
-  const dismissGateReadout = bellPlaygroundReadout
-    ? () => setBellPlaygroundReadout(null)
-    : bellReadout
-      ? dismissBellReadout
-      : cnotReadout
-        ? dismissCnotReadout
-        : qubitA.gateReadout
-          ? qubitA.dismissGateReadout
-          : qubitB.dismissGateReadout
+  const dismissGateReadout = corrEduReadout
+    ? () => setCorrEduReadout(null)
+    : teleportReadout
+      ? dismissTeleportReadout
+      : bellPlaygroundReadout
+        ? () => setBellPlaygroundReadout(null)
+        : bellReadout
+          ? dismissBellReadout
+          : cnotReadout
+            ? dismissCnotReadout
+            : qubitA.gateReadout
+              ? qubitA.dismissGateReadout
+              : qubitB.dismissGateReadout
 
   const result = jointMeasurementResult ?? qubitA.result ?? qubitB.result
   const dismissResult = jointMeasurementResult
@@ -563,6 +770,8 @@ function AppInner() {
       ...cnotHistory,
       ...bellHistory,
       ...bellMeasureHistory,
+      ...corrHistory,
+      ...teleportHistory,
     ],
     [
       qubitA.gateHistory,
@@ -570,6 +779,8 @@ function AppInner() {
       cnotHistory,
       bellHistory,
       bellMeasureHistory,
+      corrHistory,
+      teleportHistory,
     ],
   )
 
@@ -663,7 +874,9 @@ function AppInner() {
     qubitB.controlsLocked ||
     cnotBusy ||
     jointMeasureBusy ||
-    bellPrepBusy
+    bellPrepBusy ||
+    teleportBusy ||
+    corrBusy
 
   useEffect(() => {
     if (phase !== 'transition') return
@@ -754,10 +967,11 @@ function AppInner() {
       <section className="hero-stage" aria-label="Bloch Sphere exhibit">
         <Scene
           phase={phase}
-          qubits={playground ? sceneQubits : null}
+          qubits={playground && !teleportActive ? sceneQubits : null}
           stackVertical={mobileLayout}
           entangled={entangled || Boolean(cnotPulse) || bellPrepBusy}
           entanglementBoost={entanglementBoost}
+          teleport={teleportActive && teleportScene ? teleportScene : null}
         />
       </section>
 
@@ -767,12 +981,24 @@ function AppInner() {
         <div className="instrument-shelf instrument-shelf--dual">
           <QubitInstrument
             qubit={qubitA}
-            locked={cnotBusy || bellPrepBusy || jointMeasureBusy}
+            locked={
+              cnotBusy ||
+              bellPrepBusy ||
+              jointMeasureBusy ||
+              teleportBusy ||
+              corrBusy
+            }
             onMeasureOverride={jointAmps ? () => measureJointQubit('A') : undefined}
           />
           <QubitInstrument
             qubit={qubitB}
-            locked={cnotBusy || bellPrepBusy || jointMeasureBusy}
+            locked={
+              cnotBusy ||
+              bellPrepBusy ||
+              jointMeasureBusy ||
+              teleportBusy ||
+              corrBusy
+            }
             onMeasureOverride={jointAmps ? () => measureJointQubit('B') : undefined}
           />
           <ControlledOperationsPanel
@@ -797,6 +1023,25 @@ function AppInner() {
             }
             trials={bellTrials}
             disabled={controlsLocked}
+          />
+          <BellCorrelationLab
+            selectedBell={preparedBellId ?? bellSelected}
+            trials={corrTrials}
+            agreementPercent={corrStats.agreementPercent}
+            oppositePercent={corrStats.oppositePercent}
+            onRunBatch={runCorrelationBatch}
+            onClear={clearCorrelationLab}
+            canRun={Boolean(preparedBellId)}
+            running={corrBusy}
+            disabled={controlsLocked && !corrBusy}
+          />
+          <TeleportationPanel
+            classicalBits={teleportClassicalBits}
+            onStart={startTeleportation}
+            onReset={resetTeleport}
+            disabled={controlsLocked}
+            busy={teleportBusy}
+            active={teleportActive}
           />
           <CompositeStatePanel
             thetaA={qubitA.theta}

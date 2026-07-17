@@ -133,6 +133,37 @@ function GateEntry({ record }: { record: GateOperationRecord }) {
             <span>{record.result}</span>
           </p>
         </>
+      ) : record.gate === 'TELEPORT' ? (
+        <>
+          <p className="measurement-history-label">Protocol</p>
+          <p className="measurement-history-line">
+            <span>Prepared Bell Pair</span>
+          </p>
+          <p className="measurement-history-line">
+            <span>Bell Measurement</span>
+          </p>
+          {record.gateSequence?.map((step) => (
+            <p key={step} className="measurement-history-line">
+              <span>{step}</span>
+            </p>
+          ))}
+          <p className="measurement-history-label">Status</p>
+          <p className="measurement-history-line">
+            <span>Complete</span>
+          </p>
+        </>
+      ) : record.gate === 'BELL_CORR' ? (
+        <>
+          <p className="measurement-history-label">Bell State</p>
+          <p className="measurement-history-line">
+            <span>{record.rotation}</span>
+          </p>
+          {record.gateSequence?.slice(1).map((step) => (
+            <p key={step} className="measurement-history-line">
+              <span>{step}</span>
+            </p>
+          ))}
+        </>
       ) : (
         <>
           {record.registerLabel ? (

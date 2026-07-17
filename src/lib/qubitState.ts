@@ -17,12 +17,6 @@ export function qubitStateLabel(theta: number): QubitStateName {
     returned = 'Superposition'
   }
 
-  // Diagnostic: every classification (including Strict Mode double-render).
-  console.log('[qubitStateLabel]', {
-    theta,
-    returnedLabel: returned,
-  })
-
   return returned
 }
 

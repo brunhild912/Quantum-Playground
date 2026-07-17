@@ -156,6 +156,64 @@ export function createBellMeasurementRecord(input: {
   }
 }
 
+export function createTeleportationRecord(input: {
+  index: number
+  classicalBits: string
+  correction: string
+}): GateOperationRecord {
+  const timestamp = Date.now()
+  return {
+    id: `gate-teleport-${input.index}-${timestamp}`,
+    index: input.index,
+    kind: 'gate',
+    gate: 'TELEPORT',
+    title: 'Quantum Teleportation',
+    rotation: 'Prepared Bell Pair → Bell Measurement',
+    result: 'Complete',
+    observation: `Classical Bits: ${input.classicalBits}. ${input.correction}. State reconstructed on Bob.`,
+    timestamp,
+    gateSequence: [
+      'Prepared Bell Pair',
+      'Bell Measurement',
+      `Classical Bits: ${input.classicalBits}`,
+      input.correction,
+      'State reconstructed on Bob',
+    ],
+    registerLabel: 'Alice → Bob',
+  }
+}
+
+export function createBellCorrelationExperimentRecord(input: {
+  index: number
+  bellLabel: string
+  trials: number
+  agreementPercent: number
+  oppositePercent: number
+}): GateOperationRecord {
+  const timestamp = Date.now()
+  const dominant =
+    input.agreementPercent >= input.oppositePercent
+      ? `Agreement ${input.agreementPercent}%`
+      : `Opposite ${input.oppositePercent}%`
+  return {
+    id: `gate-bell-corr-${input.index}-${timestamp}`,
+    index: input.index,
+    kind: 'gate',
+    gate: 'BELL_CORR',
+    title: 'Bell Correlation Experiment',
+    rotation: input.bellLabel,
+    result: dominant,
+    observation: `Trials: ${input.trials}. Agreement ${input.agreementPercent}%. Opposite ${input.oppositePercent}%.`,
+    timestamp,
+    gateSequence: [
+      `Bell State: ${input.bellLabel}`,
+      `Trials: ${input.trials}`,
+      dominant,
+    ],
+    registerLabel: input.bellLabel,
+  }
+}
+
 export function createCNOTOperationRecord(input: {
   index: number
   controlLabel: string

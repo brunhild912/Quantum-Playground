@@ -5,6 +5,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import * as THREE from 'three'
 import { SPHERE_CENTER_Y } from '../lib/sceneConstants'
 import { DUAL_QUBIT_OFFSET_X } from '../lib/qubitId'
+import type { TeleportSceneView } from '../hooks/useTeleportationSequence'
 import { easeInOutCubic } from '../lib/easing'
 import BlochSphere from './BlochSphere'
 import SceneEffects from './SceneEffects'
@@ -15,6 +16,8 @@ import { useJourney, type JourneyPhase } from '../state/journeyContext'
 const BASE_CAMERA: [number, number, number] = [0, 0.1, 6.4]
 const FOCUS_CAMERA: [number, number, number] = [0, 0.08, 4.45]
 const DUAL_CAMERA: [number, number, number] = [0, 0.08, 7.35]
+const TRIPLE_CAMERA: [number, number, number] = [0, 0.08, 8.6]
+const TRIPLE_OFFSET_X = 2.05
 const TRANSITION_MS = 2600
 
 export type SceneQubitView = {
@@ -195,6 +198,97 @@ function DualFraming({ enabled }: { enabled: boolean }) {
   return null
 }
 
+function TripleFraming({ enabled }: { enabled: boolean }) {
+  const { camera } = useThree()
+  const done = useRef(false)
+
+  useEffect(() => {
+    done.current = false
+  }, [enabled])
+
+  useFrame(() => {
+    if (!enabled || done.current) return
+    const target = new THREE.Vector3(...TRIPLE_CAMERA)
+    camera.position.lerp(target, 0.04)
+    if (camera.position.distanceTo(target) < 0.02) {
+      camera.position.copy(target)
+      done.current = true
+    }
+  }, 2)
+
+  return null
+}
+
+function ClassicalCommLine({
+  from,
+  to,
+  progress,
+}: {
+  from: { x: number; y: number }
+  to: { x: number; y: number }
+  progress: number
+}) {
+  const markerRef = useRef<THREE.Mesh>(null)
+  const matRef = useRef<THREE.LineBasicMaterial>(null)
+  const t = Math.max(0, Math.min(1, progress))
+
+  useFrame(() => {
+    const marker = markerRef.current
+    const mat = matRef.current
+    if (!marker || !mat) return
+    mat.opacity = t > 0 ? 0.2 + t * 0.25 : 0
+    marker.position.set(
+      from.x + (to.x - from.x) * t,
+      SPHERE_CENTER_Y + from.y + (to.y - from.y) * t,
+      0,
+    )
+    marker.visible = t > 0.02
+  })
+
+  if (t <= 0) return null
+
+  return (
+    <group renderOrder={8}>
+      <line>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[
+              new Float32Array([
+                from.x,
+                SPHERE_CENTER_Y + from.y,
+                0,
+                to.x,
+                SPHERE_CENTER_Y + to.y,
+                0,
+              ]),
+              3,
+            ]}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial
+          ref={matRef}
+          color="#fbbf24"
+          transparent
+          opacity={0.3}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </line>
+      <mesh ref={markerRef}>
+        <sphereGeometry args={[0.03, 10, 10]} />
+        <meshBasicMaterial
+          color="#fde68a"
+          transparent
+          opacity={0.8}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </group>
+  )
+}
+
 function EntanglementLink({
   a,
   b,
@@ -287,6 +381,7 @@ export default function Scene({
   stackVertical = false,
   entangled = false,
   entanglementBoost = 0,
+  teleport = null,
 }: {
   phase: JourneyPhase
   /** Legacy single-qubit view (landing / transition). */
@@ -302,12 +397,18 @@ export default function Scene({
   entangled?: boolean
   /** Level 7E: brief intensify after Bell preparation (0–1). */
   entanglementBoost?: number
+  /** Level 7G: three-sphere teleportation layout. */
+  teleport?: TeleportSceneView | null
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const controlsEnabled = phase === 'playground' || phase === 'landing'
   const focus = phase === 'transition' ? 1 : 0
+  const triple = phase === 'playground' && teleport != null
   const dual =
-    phase === 'playground' && Array.isArray(qubits) && qubits.length >= 2
+    phase === 'playground' &&
+    !triple &&
+    Array.isArray(qubits) &&
+    qubits.length >= 2
 
   const offsetA = stackVertical
     ? { x: 0, y: DUAL_QUBIT_OFFSET_X * 0.85 }
@@ -315,6 +416,14 @@ export default function Scene({
   const offsetB = stackVertical
     ? { x: 0, y: -DUAL_QUBIT_OFFSET_X * 0.85 }
     : { x: DUAL_QUBIT_OFFSET_X, y: 0 }
+
+  const offsetAlice = stackVertical
+    ? { x: 0, y: TRIPLE_OFFSET_X * 1.1 }
+    : { x: -TRIPLE_OFFSET_X, y: 0 }
+  const offsetPair = stackVertical ? { x: 0, y: 0 } : { x: 0, y: 0 }
+  const offsetBob = stackVertical
+    ? { x: 0, y: -TRIPLE_OFFSET_X * 1.1 }
+    : { x: TRIPLE_OFFSET_X, y: 0 }
 
   return (
     <Canvas
@@ -374,7 +483,45 @@ export default function Scene({
 
       <StarField />
 
-      {dual ? (
+      {triple && teleport ? (
+        <>
+          <BlochSphere
+            focus={0}
+            offsetX={offsetAlice.x}
+            offsetY={offsetAlice.y}
+            label={teleport.alice.label}
+            qubit={{ theta: teleport.alice.theta, phi: teleport.alice.phi }}
+            measurementPulse={teleport.alice.measurementPulse}
+          />
+          <BlochSphere
+            focus={0}
+            offsetX={offsetPair.x}
+            offsetY={offsetPair.y}
+            label={teleport.pair.label}
+            qubit={{ theta: teleport.pair.theta, phi: teleport.pair.phi }}
+            measurementPulse={teleport.pair.measurementPulse}
+          />
+          <BlochSphere
+            focus={0}
+            offsetX={offsetBob.x}
+            offsetY={offsetBob.y}
+            label={teleport.bob.label}
+            qubit={{ theta: teleport.bob.theta, phi: teleport.bob.phi }}
+            measurementPulse={teleport.bob.measurementPulse}
+          />
+          <EntanglementLink
+            a={offsetPair}
+            b={offsetBob}
+            active={teleport.entangled}
+          />
+          <ClassicalCommLine
+            from={offsetPair}
+            to={offsetBob}
+            progress={teleport.commProgress}
+          />
+          <TripleFraming enabled />
+        </>
+      ) : dual ? (
         <>
           <BlochSphere
             focus={0}
@@ -417,9 +564,9 @@ export default function Scene({
       <SceneControls
         controlsRef={controlsRef}
         enabled={controlsEnabled}
-        dual={dual}
+        dual={dual || triple}
       />
-      <TransitionRig phase={phase} controlsRef={controlsRef} dual={dual} />
+      <TransitionRig phase={phase} controlsRef={controlsRef} dual={dual || triple} />
       <SceneEffects />
     </Canvas>
   )
