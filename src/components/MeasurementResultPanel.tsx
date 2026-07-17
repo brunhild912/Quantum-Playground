@@ -31,6 +31,9 @@ export default function MeasurementResultPanel({
       <div className="measurement-result-rule" aria-hidden="true" />
 
       <p className="measurement-result-label">Measured</p>
+      {result.registerLabel ? (
+        <p className="measurement-result-label">{result.registerLabel}</p>
+      ) : null}
       <p className="measurement-result-outcome">{result.outcome}</p>
 
       <p className="measurement-result-label">Previous probabilities</p>

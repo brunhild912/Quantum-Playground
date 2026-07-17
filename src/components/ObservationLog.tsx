@@ -13,6 +13,8 @@ export type ObservationLogProps = {
   phi: number
   measurementHistory?: MeasurementRecord[]
   gateOperations?: GateOperationRecord[]
+  /** Optional override for the Discovery card (e.g. Level 7A dual readout). */
+  discoveryLinesOverride?: string[]
 }
 
 type ConsoleView = 'closed' | 'open' | 'minimized'
@@ -23,13 +25,14 @@ export default function ObservationLog({
   phi,
   measurementHistory = [],
   gateOperations = [],
+  discoveryLinesOverride,
 }: ObservationLogProps) {
   const [view, setView] = useState<ConsoleView>('closed')
   const [openCardId, setOpenCardId] = useState<string | null>(null)
 
   const discoveryLines = useMemo(
-    () => discoveryReadout(theta, phi),
-    [theta, phi],
+    () => discoveryLinesOverride ?? discoveryReadout(theta, phi),
+    [discoveryLinesOverride, theta, phi],
   )
 
   const toggleCard = (cardId: string) => {

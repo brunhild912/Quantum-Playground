@@ -16,6 +16,8 @@ export type GateOperationRecord = {
   timestamp: number
   /** Future: full circuit prefix. */
   gateSequence?: string[]
+  /** Which qubit produced this operation (Level 7A+). */
+  registerLabel?: string | null
 }
 
 export function createXGateOperationRecord(index: number): GateOperationRecord {

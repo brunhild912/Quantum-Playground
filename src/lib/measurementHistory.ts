@@ -29,6 +29,7 @@ export function createMeasurementRecord(input: {
   probabilityOne: number
   measuredState: MeasurementOutcome
   timestamp?: number
+  registerLabel?: string | null
 }): MeasurementRecord {
   const timestamp = input.timestamp ?? Date.now()
   return {
@@ -41,7 +42,7 @@ export function createMeasurementRecord(input: {
     appliedGate: null,
     gateSequence: [],
     batchId: null,
-    registerLabel: null,
+    registerLabel: input.registerLabel ?? null,
   }
 }
 

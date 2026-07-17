@@ -4,6 +4,7 @@ import { Environment, OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import * as THREE from 'three'
 import { SPHERE_CENTER_Y } from '../lib/sceneConstants'
+import { DUAL_QUBIT_OFFSET_X } from '../lib/qubitId'
 import { easeInOutCubic } from '../lib/easing'
 import BlochSphere from './BlochSphere'
 import SceneEffects from './SceneEffects'
@@ -13,7 +14,18 @@ import { useJourney, type JourneyPhase } from '../state/journeyContext'
 
 const BASE_CAMERA: [number, number, number] = [0, 0.1, 6.4]
 const FOCUS_CAMERA: [number, number, number] = [0, 0.08, 4.45]
+const DUAL_CAMERA: [number, number, number] = [0, 0.08, 7.35]
 const TRANSITION_MS = 2600
+
+export type SceneQubitView = {
+  id: string
+  label: string
+  theta: number
+  phi: number
+  measurementPulse?: number
+  phase?: number
+  phasePulse?: number
+}
 
 function CameraDrift({
   controlsRef,
@@ -58,9 +70,11 @@ function CameraDrift({
 function SceneControls({
   controlsRef,
   enabled,
+  dual,
 }: {
   controlsRef: React.RefObject<OrbitControlsImpl | null>
   enabled: boolean
+  dual: boolean
 }) {
   const interacting = useRef(false)
 
@@ -91,7 +105,7 @@ function SceneControls({
         enabled={enabled}
         enableDamping
         dampingFactor={0.08}
-        minDistance={3.8}
+        minDistance={dual ? 5.2 : 3.8}
         maxDistance={11}
         maxPolarAngle={Math.PI * 0.85}
         minPolarAngle={Math.PI * 0.15}
@@ -100,7 +114,11 @@ function SceneControls({
         enablePan={false}
         target={[0, SPHERE_CENTER_Y, 0]}
       />
-      <CameraDrift controlsRef={controlsRef} interacting={interacting} enabled={enabled} />
+      <CameraDrift
+        controlsRef={controlsRef}
+        interacting={interacting}
+        enabled={enabled}
+      />
     </>
   )
 }
@@ -108,16 +126,21 @@ function SceneControls({
 function TransitionRig({
   phase,
   controlsRef,
+  dual,
 }: {
   phase: JourneyPhase
   controlsRef: React.RefObject<OrbitControlsImpl | null>
+  dual: boolean
 }) {
   const { camera } = useThree()
   const { transitionStartMsRef, enterPlayground } = useJourney()
   const startPos = useRef(new THREE.Vector3(...BASE_CAMERA))
   const startQuat = useRef(new THREE.Quaternion())
 
-  const focusPos = useMemo(() => new THREE.Vector3(...FOCUS_CAMERA), [])
+  const focusPos = useMemo(
+    () => new THREE.Vector3(...(dual ? DUAL_CAMERA : FOCUS_CAMERA)),
+    [dual],
+  )
 
   useEffect(() => {
     if (phase !== 'transition') return
@@ -150,22 +173,60 @@ function TransitionRig({
   return null
 }
 
+/** Soft pull-back so both spheres fit once the playground opens. */
+function DualFraming({ enabled }: { enabled: boolean }) {
+  const { camera } = useThree()
+  const done = useRef(false)
+
+  useEffect(() => {
+    done.current = false
+  }, [enabled])
+
+  useFrame(() => {
+    if (!enabled || done.current) return
+    const target = new THREE.Vector3(...DUAL_CAMERA)
+    camera.position.lerp(target, 0.04)
+    if (camera.position.distanceTo(target) < 0.02) {
+      camera.position.copy(target)
+      done.current = true
+    }
+  }, 2)
+
+  return null
+}
+
 export default function Scene({
   phase,
   qubit,
   measurementPulse = 0,
   phaseAngle = 0,
   phasePulse = 0,
+  qubits,
+  stackVertical = false,
 }: {
   phase: JourneyPhase
+  /** Legacy single-qubit view (landing / transition). */
   qubit?: { theta: number; phi: number } | null
   measurementPulse?: number
   phaseAngle?: number
   phasePulse?: number
+  /** Level 7A: two independent qubits in the playground. */
+  qubits?: SceneQubitView[] | null
+  /** Mobile: stack spheres vertically instead of side-by-side. */
+  stackVertical?: boolean
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const controlsEnabled = phase === 'playground' || phase === 'landing'
   const focus = phase === 'transition' ? 1 : 0
+  const dual =
+    phase === 'playground' && Array.isArray(qubits) && qubits.length >= 2
+
+  const offsetA = stackVertical
+    ? { x: 0, y: DUAL_QUBIT_OFFSET_X * 0.85 }
+    : { x: -DUAL_QUBIT_OFFSET_X, y: 0 }
+  const offsetB = stackVertical
+    ? { x: 0, y: -DUAL_QUBIT_OFFSET_X * 0.85 }
+    : { x: DUAL_QUBIT_OFFSET_X, y: 0 }
 
   return (
     <Canvas
@@ -224,15 +285,47 @@ export default function Scene({
       />
 
       <StarField />
-      <BlochSphere
-        focus={focus}
-        qubit={qubit}
-        measurementPulse={measurementPulse}
-        phase={phaseAngle}
-        phasePulse={phasePulse}
+
+      {dual ? (
+        <>
+          <BlochSphere
+            focus={0}
+            offsetX={offsetA.x}
+            offsetY={offsetA.y}
+            label={qubits![0]!.label}
+            qubit={{ theta: qubits![0]!.theta, phi: qubits![0]!.phi }}
+            measurementPulse={qubits![0]!.measurementPulse ?? 0}
+            phase={qubits![0]!.phase ?? 0}
+            phasePulse={qubits![0]!.phasePulse ?? 0}
+          />
+          <BlochSphere
+            focus={0}
+            offsetX={offsetB.x}
+            offsetY={offsetB.y}
+            label={qubits![1]!.label}
+            qubit={{ theta: qubits![1]!.theta, phi: qubits![1]!.phi }}
+            measurementPulse={qubits![1]!.measurementPulse ?? 0}
+            phase={qubits![1]!.phase ?? 0}
+            phasePulse={qubits![1]!.phasePulse ?? 0}
+          />
+          <DualFraming enabled />
+        </>
+      ) : (
+        <BlochSphere
+          focus={focus}
+          qubit={qubit}
+          measurementPulse={measurementPulse}
+          phase={phaseAngle}
+          phasePulse={phasePulse}
+        />
+      )}
+
+      <SceneControls
+        controlsRef={controlsRef}
+        enabled={controlsEnabled}
+        dual={dual}
       />
-      <SceneControls controlsRef={controlsRef} enabled={controlsEnabled} />
-      <TransitionRig phase={phase} controlsRef={controlsRef} />
+      <TransitionRig phase={phase} controlsRef={controlsRef} dual={dual} />
       <SceneEffects />
     </Canvas>
   )

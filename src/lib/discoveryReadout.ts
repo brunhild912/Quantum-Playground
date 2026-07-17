@@ -38,3 +38,17 @@ export function discoveryReadout(theta: number, phi: number): string[] {
     'That continuous space represents superposition.',
   ]
 }
+
+/** Level 7A / 7B: two independent qubits and their composite basis. */
+export function discoveryReadoutTwoQubits(
+  a: { label: string; theta: number },
+  b: { label: string; theta: number },
+): string[] {
+  return [
+    'Two qubits create four computational basis states.',
+    `${a.label}: ${qubitStateLabel(a.theta)}`,
+    `${b.label}: ${qubitStateLabel(b.theta)}`,
+    'The combined system contains |00⟩, |01⟩, |10⟩, and |11⟩.',
+    'Changing one qubit reshapes the whole composite probability table.',
+  ]
+}

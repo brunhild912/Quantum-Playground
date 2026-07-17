@@ -12,6 +12,7 @@ export type MeasurementResult = {
   outcome: MeasurementOutcome
   percent0: number
   percent1: number
+  registerLabel?: string | null
 }
 
 const COLLAPSE_MS = 550
@@ -22,12 +23,15 @@ type UseMeasurementSequenceArgs = {
   theta: number
   setTheta: (theta: number) => void
   enabled: boolean
+  /** Level 7A+: which qubit is being measured. */
+  registerLabel?: string | null
 }
 
 export function useMeasurementSequence({
   theta,
   setTheta,
   enabled,
+  registerLabel = null,
 }: UseMeasurementSequenceArgs) {
   const [busy, setBusy] = useState(false)
   const [pulse, setPulse] = useState(0)
@@ -95,6 +99,7 @@ export function useMeasurementSequence({
           outcome: sample.outcome,
           percent0: sample.probabilities.percent0,
           percent1: sample.probabilities.percent1,
+          registerLabel,
         })
 
         historyCountRef.current += 1
@@ -103,6 +108,7 @@ export function useMeasurementSequence({
           probabilityZero: sample.probabilities.percent0,
           probabilityOne: sample.probabilities.percent1,
           measuredState: sample.outcome,
+          registerLabel,
         })
         setHistory((prev) => [...prev, record])
       }, COLLAPSE_MS),
@@ -114,7 +120,7 @@ export function useMeasurementSequence({
         setPulse(0)
       }, SEQUENCE_MS),
     )
-  }, [busy, clearTimers, enabled, setTheta])
+  }, [busy, clearTimers, enabled, registerLabel, setTheta])
 
   return {
     measure,

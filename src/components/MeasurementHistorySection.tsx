@@ -47,6 +47,15 @@ function MeasurementEntry({ record }: { record: MeasurementRecord }) {
       <p className="measurement-history-label">Result</p>
       <p className="measurement-history-result">{record.measuredState}</p>
 
+      {record.registerLabel ? (
+        <>
+          <p className="measurement-history-label">Qubit</p>
+          <p className="measurement-history-line">
+            <span>{record.registerLabel}</span>
+          </p>
+        </>
+      ) : null}
+
       <p className="measurement-history-time">{relative}</p>
     </div>
   )
@@ -70,6 +79,15 @@ function GateEntry({ record }: { record: GateOperationRecord }) {
       <p className="measurement-history-entry-title">Operation</p>
 
       <p className="measurement-history-result">{record.title}</p>
+
+      {record.registerLabel ? (
+        <>
+          <p className="measurement-history-label">Qubit</p>
+          <p className="measurement-history-line">
+            <span>{record.registerLabel}</span>
+          </p>
+        </>
+      ) : null}
 
       <p className="measurement-history-label">Rotation</p>
       <p className="measurement-history-line">

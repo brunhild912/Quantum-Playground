@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { Line } from '@react-three/drei'
+import { Line, Html } from '@react-three/drei'
 import { meditativeFloat } from '../lib/easing'
 import { createFresnelMaterial } from '../lib/fresnelMaterial'
 import { getOpeningSequence, getSequenceElapsed } from '../lib/openingSequence'
@@ -122,6 +122,9 @@ export default function BlochSphere({
   measurementPulse = 0,
   phase = 0,
   phasePulse = 0,
+  offsetX = 0,
+  offsetY = 0,
+  label,
 }: {
   focus: number
   qubit?: { theta: number; phi: number } | null
@@ -130,6 +133,12 @@ export default function BlochSphere({
   phase?: number
   /** Emphasis while a phase gate animates (0–1). */
   phasePulse?: number
+  /** Horizontal offset for dual-sphere layouts (Level 7A). */
+  offsetX?: number
+  /** Vertical offset for stacked mobile dual layout. */
+  offsetY?: number
+  /** Subtle label above the sphere (e.g. "Qubit A"). */
+  label?: string
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const gridRef = useRef<THREE.Group>(null)
@@ -152,7 +161,9 @@ export default function BlochSphere({
     const { sphere: reveal } = getOpeningSequence(getSequenceElapsed())
     const focusScale = 1 + Math.min(1, Math.max(0, focus)) * 0.12
 
-    group.position.y = SPHERE_CENTER_Y + meditativeFloat(t, 0.1) * reveal
+    group.position.x = offsetX
+    group.position.y = SPHERE_CENTER_Y + offsetY + meditativeFloat(t, 0.1) * reveal
+    group.position.z = 0
     group.rotation.y = t * 0.08
     group.rotation.x = Math.sin(t * 0.25) * 0.08
     group.rotation.z = Math.sin(t * 0.17) * 0.03
@@ -236,6 +247,17 @@ export default function BlochSphere({
 
       {qubit && measurementPulse > 0.01 ? (
         <MeasurementParticles pulse={measurementPulse} />
+      ) : null}
+
+      {label ? (
+        <Html
+          position={[0, BLOCH_RADIUS + 0.42, 0]}
+          center
+          distanceFactor={8}
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          <div className="qubit-sphere-label">{label}</div>
+        </Html>
       ) : null}
     </group>
   )

@@ -1,132 +1,113 @@
 import LandingOverlay from './components/LandingOverlay'
 import ObservationLog from './components/ObservationLog'
 import OpeningCurtain from './components/OpeningCurtain'
-import ControlPanel from './components/ControlPanel'
-import ProbabilityPanel from './components/ProbabilityPanel'
-import MeasureButton from './components/MeasureButton'
 import MeasurementResultPanel from './components/MeasurementResultPanel'
 import GateInfoPanel from './components/GateInfoPanel'
+import QubitInstrument from './components/QubitInstrument'
+import CompositeStatePanel from './components/CompositeStatePanel'
 import Scene from './components/Scene'
 import { level1MissionConsole } from './content/level1ObservationLog'
 import { JourneyProvider } from './state/JourneyProvider'
 import { useJourney } from './state/journeyContext'
-import { useQubitState } from './hooks/useQubitState'
-import { useMeasurementSequence } from './hooks/useMeasurementSequence'
-import { useXGateSequence } from './hooks/useXGateSequence'
-import { useYGateSequence } from './hooks/useYGateSequence'
-import { useZGateSequence } from './hooks/useZGateSequence'
-import { useSGateSequence } from './hooks/useSGateSequence'
-import { useTGateSequence } from './hooks/useTGateSequence'
-import { usePhaseLayer } from './hooks/usePhaseLayer'
-import { qubitStateLabel } from './lib/qubitState'
-import { useEffect, useMemo, useState } from 'react'
+import { useQubitController } from './hooks/useQubitController'
+import { discoveryReadoutTwoQubits } from './lib/discoveryReadout'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const MOBILE_EDU_CARD_DELAY_MS = 2000
 const MOBILE_LAYOUT_MQ = '(max-width: 767.98px)'
 
+function useIsMobileLayout() {
+  const [mobile, setMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_LAYOUT_MQ)
+    const sync = () => setMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  return mobile
+}
+
 function AppInner() {
   const { phase, beginJourney } = useJourney()
-  const { theta, phi, setTheta, setPhi, setAngles } = useQubitState()
-  const {
-    phase: phaseAngle,
-    pulse: phasePulse,
-    animatePhaseAdvance,
-  } = usePhaseLayer()
+  const playground = phase === 'playground'
+  const mobileLayout = useIsMobileLayout()
 
-  const {
-    applyX,
-    busy: xBusy,
-    glowing: xGlowing,
-    readout: xReadout,
-    dismissReadout: dismissXReadout,
-    gateHistory: xHistory,
-  } = useXGateSequence({
-    theta,
-    phi,
-    setAngles,
-    enabled: phase === 'playground',
-  })
+  const qubitA = useQubitController('A', playground)
+  const qubitB = useQubitController('B', playground)
 
-  const {
-    applyY,
-    busy: yBusy,
-    glowing: yGlowing,
-    readout: yReadout,
-    dismissReadout: dismissYReadout,
-    gateHistory: yHistory,
-  } = useYGateSequence({
-    theta,
-    phi,
-    setAngles,
-    enabled: phase === 'playground' && !xBusy,
-  })
+  const gateReadout = qubitA.gateReadout ?? qubitB.gateReadout
+  const dismissGateReadout = qubitA.gateReadout
+    ? qubitA.dismissGateReadout
+    : qubitB.dismissGateReadout
 
-  const {
-    applyZ,
-    busy: zBusy,
-    glowing: zGlowing,
-    readout: zReadout,
-    dismissReadout: dismissZReadout,
-    gateHistory: zHistory,
-    phaseNotice: zPhaseNotice,
-  } = useZGateSequence({
-    enabled: phase === 'playground' && !xBusy && !yBusy,
-    animatePhaseAdvance,
-  })
+  const result = qubitA.result ?? qubitB.result
+  const dismissResult = qubitA.result
+    ? qubitA.dismissResult
+    : qubitB.dismissResult
 
-  const {
-    applyS,
-    busy: sBusy,
-    glowing: sGlowing,
-    readout: sReadout,
-    dismissReadout: dismissSReadout,
-    gateHistory: sHistory,
-    phaseNotice: sPhaseNotice,
-  } = useSGateSequence({
-    enabled: phase === 'playground' && !xBusy && !yBusy && !zBusy,
-    animatePhaseAdvance,
-  })
-
-  const {
-    applyT,
-    busy: tBusy,
-    glowing: tGlowing,
-    readout: tReadout,
-    dismissReadout: dismissTReadout,
-    gateHistory: tHistory,
-    phaseNotice: tPhaseNotice,
-  } = useTGateSequence({
-    enabled: phase === 'playground' && !xBusy && !yBusy && !zBusy && !sBusy,
-    animatePhaseAdvance,
-  })
-
-  const gateBusy = xBusy || yBusy || zBusy || sBusy || tBusy
-  const phaseNotice = tPhaseNotice ?? sPhaseNotice ?? zPhaseNotice
-  const gateReadout = tReadout ?? sReadout ?? yReadout ?? zReadout ?? xReadout
-  const dismissGateReadout = tReadout
-    ? dismissTReadout
-    : sReadout
-      ? dismissSReadout
-      : yReadout
-        ? dismissYReadout
-        : zReadout
-          ? dismissZReadout
-          : dismissXReadout
   const gateHistory = useMemo(
-    () => [...xHistory, ...yHistory, ...zHistory, ...sHistory, ...tHistory],
-    [xHistory, yHistory, zHistory, sHistory, tHistory],
+    () => [...qubitA.gateHistory, ...qubitB.gateHistory],
+    [qubitA.gateHistory, qubitB.gateHistory],
   )
 
-  const { measure, busy: measureBusy, pulse, result, dismissResult, history } =
-    useMeasurementSequence({
-      theta,
-      setTheta,
-      enabled: phase === 'playground' && !gateBusy,
-    })
+  const measurementHistory = useMemo(
+    () => [...qubitA.measurementHistory, ...qubitB.measurementHistory],
+    [qubitA.measurementHistory, qubitB.measurementHistory],
+  )
 
-  const controlsLocked = measureBusy || gateBusy
+  const discoveryLines = useMemo(
+    () =>
+      discoveryReadoutTwoQubits(
+        { label: qubitA.name, theta: qubitA.theta },
+        { label: qubitB.name, theta: qubitB.theta },
+      ),
+    [qubitA.name, qubitA.theta, qubitB.name, qubitB.theta],
+  )
 
-  // Disable scroll (wheel/touch) during the camera transition.
+  const sceneQubits = useMemo(
+    () => [
+      {
+        id: qubitA.id,
+        label: qubitA.name,
+        theta: qubitA.theta,
+        phi: qubitA.phi,
+        measurementPulse: qubitA.pulse,
+        phase: qubitA.phaseAngle,
+        phasePulse: qubitA.phasePulse,
+      },
+      {
+        id: qubitB.id,
+        label: qubitB.name,
+        theta: qubitB.theta,
+        phi: qubitB.phi,
+        measurementPulse: qubitB.pulse,
+        phase: qubitB.phaseAngle,
+        phasePulse: qubitB.phasePulse,
+      },
+    ],
+    [
+      qubitA.id,
+      qubitA.name,
+      qubitA.theta,
+      qubitA.phi,
+      qubitA.pulse,
+      qubitA.phaseAngle,
+      qubitA.phasePulse,
+      qubitB.id,
+      qubitB.name,
+      qubitB.theta,
+      qubitB.phi,
+      qubitB.pulse,
+      qubitB.phaseAngle,
+      qubitB.phasePulse,
+    ],
+  )
+
+  const controlsLocked = qubitA.controlsLocked || qubitB.controlsLocked
+
   useEffect(() => {
     if (phase !== 'transition') return
 
@@ -140,13 +121,39 @@ function AppInner() {
     }
   }, [phase])
 
-  const stateLabel = useMemo(() => qubitStateLabel(theta), [theta])
-
-  // Mobile: let the gate animation settle before Learning Notes appear.
-  // Desktop / tablet keep the existing immediate card timing.
   const [shownGateReadout, setShownGateReadout] = useState<typeof gateReadout>(
     null,
   )
+
+  const [compositeIntro, setCompositeIntro] = useState<{
+    title: string
+    body: string[]
+  } | null>(null)
+  const compositeIntroShownRef = useRef(false)
+
+  useEffect(() => {
+    if (!playground) {
+      compositeIntroShownRef.current = false
+      setCompositeIntro(null)
+      return
+    }
+    if (compositeIntroShownRef.current) return
+
+    const delay = mobileLayout ? MOBILE_EDU_CARD_DELAY_MS : 900
+    const id = window.setTimeout(() => {
+      compositeIntroShownRef.current = true
+      setCompositeIntro({
+        title: 'Composite Quantum State',
+        body: [
+          'Each qubit still has two possible measurement outcomes.',
+          'Together, however, they create four computational basis states: |00⟩, |01⟩, |10⟩, and |11⟩.',
+          'Notice that the number of basis states doubles with every additional qubit.',
+        ],
+      })
+    }, delay)
+
+    return () => window.clearTimeout(id)
+  }, [playground, mobileLayout])
 
   useEffect(() => {
     if (!gateReadout) {
@@ -168,9 +175,15 @@ function AppInner() {
     return () => window.clearTimeout(id)
   }, [gateReadout])
 
+  const learningReadout = shownGateReadout ?? compositeIntro
+  const dismissLearningReadout = shownGateReadout
+    ? dismissGateReadout
+    : () => setCompositeIntro(null)
+
   const shellClass = [
     'app-shell',
-    phase === 'playground' ? 'app-shell--playground' : '',
+    playground ? 'app-shell--playground' : '',
+    playground ? 'app-shell--dual' : '',
     controlsLocked ? 'app-shell--measuring' : '',
   ]
     .filter(Boolean)
@@ -184,62 +197,39 @@ function AppInner() {
       <section className="hero-stage" aria-label="Bloch Sphere exhibit">
         <Scene
           phase={phase}
-          qubit={phase === 'playground' ? { theta, phi } : null}
-          measurementPulse={pulse}
-          phaseAngle={phaseAngle}
-          phasePulse={phasePulse}
+          qubits={playground ? sceneQubits : null}
+          stackVertical={mobileLayout}
         />
       </section>
 
       <LandingOverlay onBeginJourney={beginJourney} hidden={phase !== 'landing'} />
 
-      {phase === 'playground' ? (
-        <div className="instrument-shelf">
-          <div className="instrument-shelf-main">
-            <ProbabilityPanel theta={theta} notice={phaseNotice} />
-            <ControlPanel
-              stateLabel={stateLabel}
-              theta={theta}
-              phi={phi}
-              onThetaChange={setTheta}
-              onPhiChange={setPhi}
-            />
-          </div>
-
-          <div className="instrument-shelf-tools">
-            <MeasureButton
-              onMeasure={measure}
-              onXGate={applyX}
-              onYGate={applyY}
-              onZGate={applyZ}
-              onSGate={applyS}
-              onTGate={applyT}
-              disabled={controlsLocked}
-              xGlowing={xGlowing}
-              yGlowing={yGlowing}
-              zGlowing={zGlowing}
-              sGlowing={sGlowing}
-              tGlowing={tGlowing}
-            />
+      {playground ? (
+        <div className="instrument-shelf instrument-shelf--dual">
+          <QubitInstrument qubit={qubitA} />
+          <QubitInstrument qubit={qubitB} />
+          <CompositeStatePanel thetaA={qubitA.theta} thetaB={qubitB.theta} />
+          <div className="instrument-shelf-log">
             <ObservationLog
               content={level1MissionConsole}
-              theta={theta}
-              phi={phi}
-              measurementHistory={history}
+              theta={qubitA.theta}
+              phi={qubitA.phi}
+              measurementHistory={measurementHistory}
               gateOperations={gateHistory}
+              discoveryLinesOverride={discoveryLines}
             />
           </div>
         </div>
       ) : null}
 
-      {phase === 'playground' && shownGateReadout && !result ? (
+      {playground && learningReadout && !result ? (
         <GateInfoPanel
-          readout={shownGateReadout}
-          onClose={dismissGateReadout}
+          readout={learningReadout}
+          onClose={dismissLearningReadout}
         />
       ) : null}
 
-      {phase === 'playground' && result ? (
+      {playground && result ? (
         <MeasurementResultPanel result={result} onClose={dismissResult} />
       ) : null}
 
