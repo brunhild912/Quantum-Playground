@@ -1,98 +1,151 @@
 # Quantum Playground
 
-**Learn Quantum Computing Through Interactive Visualizations**
+**Learn quantum computing by seeing it, not solving it.**
 
-A cinematic, interactive playground that helps people build intuition for quantum mechanics before introducing the mathematics.
+An interactive educational platform that teaches quantum computing from first principles through quantum teleportation — using visual intuition instead of mathematical formalism.
+
+<p align="center">
+  <img src="docs/images/01-landing-hero.png" alt="Quantum Playground landing — Bloch Sphere in deep space" width="900" />
+</p>
+
+<p align="center">
+  <img src="docs/images/02-two-qubit-playground.png" alt="Two-qubit playground with live probability panels" width="900" />
+</p>
+
+<p align="center">
+  <img src="docs/images/03-bell-entanglement.png" alt="Bell state preparation with quantum link between qubits" width="900" />
+</p>
 
 ---
 
-Most people first encounter quantum mechanics through complex equations.
+## Why Quantum Playground Exists
 
-**Quantum Playground** takes a different approach.
+Most introductions to quantum computing begin with linear algebra: state vectors, unitary matrices, Dirac notation. For many learners, the mathematics becomes a wall rather than a door. They can manipulate the symbols long before they understand what the symbols describe — and many give up before that understanding ever arrives.
 
-Instead of starting with mathematics, it starts with intuition. Explore concepts visually, experiment interactively, and develop an understanding of quantum mechanics one mission at a time.
+Quantum Playground inverts the order. It builds the intuition first, through direct interaction with quantum systems, so that when learners later encounter the formalism, it describes something they have already seen and touched.
 
-## Current Progress
+## Educational Philosophy
 
-| Mission | Status | Goal |
-| --- | --- | --- |
-| Mission 01 — Genesis | ✅ Complete | Cinematic landing experience |
-| Mission 02 — Project Bloch | 🚧 In Progress | Interactive Bloch Sphere |
-| Mission 03 — State Vector | ⏳ Planned | Visualizing amplitudes |
-| Mission 04 — Quantum Gates | ⏳ Planned | Rotate qubits with gates |
-| Mission 05 — Measurement | ⏳ Planned | Collapse and probabilities |
-| Mission 06 — Entanglement | ⏳ Planned | Multiple qubits |
-| Mission 07 — Quantum Algorithms | ⏳ Planned | Putting everything together |
+**Don't tell. Show.**
 
-## Features
+Every concept in Quantum Playground is introduced through interaction and visual discovery:
 
-- 🌌 Procedurally generated starfield
-- 🌠 Cinematic documentary-style opening
-- 🔮 Glass Bloch Sphere with Fresnel lighting
-- 🎥 Smooth camera movement
-- 🧭 Interactive qubit visualization
-- 🎛 Theta and Phi controls
-- 📖 Guided learning through Observation Logs
-- 🎮 Learn by experimentation instead of memorization
+- **Superposition** is not defined — it is rotated into existence on a Bloch Sphere the learner controls.
+- **Measurement** is not explained as a postulate — the learner watches a state collapse and keeps a log of outcomes.
+- **Entanglement** is not asserted — it is discovered through repeated experiments on Bell states.
 
-## Built With
+The platform remains scientifically accurate throughout. Nothing is simplified into being wrong; it is simply made visible before it is made formal.
 
-- [React](https://react.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
-- [Three.js](https://threejs.org/)
-- [React Three Drei](https://github.com/pmndrs/drei)
-- [Postprocessing](https://github.com/pmndrs/postprocessing)
-- [Vite](https://vite.dev/)
+## What Learners Will Experience
 
-## Philosophy
+Version 1 is a continuous journey, not a set of isolated demos. Each stage builds on the last:
 
-> We believe intuition should come before equations.
->
-> Every mission introduces a single concept through interaction.
->
-> Once the idea feels natural, the mathematics becomes much easier to understand.
+- **Foundations** — Manipulate a single qubit on an interactive Bloch Sphere. Watch superposition form and probabilities update live as the state moves.
+- **Measurement** — Collapse states through observation and track outcomes in an observation history, building an experimental feel for quantum randomness.
+- **Single-Qubit Gates** — Apply Hadamard, X, Y, Z, S, and T gates. Every gate produces smooth animated state evolution, updated probabilities, phase visualization, and a discovery readout explaining what just happened.
+- **Phase** — Observe one of quantum computing's deepest ideas made visible: probabilities can stay fixed while phase evolves. This is where quantum mechanics visibly departs from classical probability.
+- **Two-Qubit Systems** — Work with two Bloch Spheres, composite states, tensor products, and controlled operations, with entanglement detection built in.
+- **Bell States** — Prepare all four Bell states, observe their construction, and inspect their correlations through repeated experiment.
+- **Quantum Teleportation** — The climax of Version 1: the full teleportation protocol, unfolding step by step using the gates and measurements learned along the way.
+- **Bell Correlation Lab** — A concluding experimental environment. Measure Bell states repeatedly and discover their correlations yourself — through experimentation, not lecture.
 
-## Roadmap
+## Version 1 Highlights
 
-- [x] Cinematic landing page
-- [x] Procedural space environment
-- [x] Bloch Sphere rendering
-- [x] Interactive qubit
-- [ ] State vectors
-- [ ] Quantum gates
-- [ ] Measurement
-- [ ] Entanglement
-- [ ] Quantum teleportation
-- [ ] Grover's Algorithm
-- [ ] Shor's Algorithm
+| Area | What it offers |
+| --- | --- |
+| Interactive Bloch Sphere | Real-time qubit manipulation with live probability visualization |
+| Measurement | State collapse with a persistent observation history |
+| Gate library | H, X, Y, Z, S, T with animated evolution and educational readouts |
+| Phase visualization | Quantum phase rendered visibly — a core innovation of the platform |
+| Two-qubit systems | Composite states, tensor products, controlled operations, entanglement detection |
+| Bell states | Guided preparation, construction view, correlation inspection |
+| Quantum teleportation | Step-by-step interactive protocol visualization |
+| Bell Correlation Lab | Open-ended experimentation with Bell-state measurement statistics |
+
+## Learning Roadmap Completed in Version 1
+
+- [x] Bloch Sphere
+- [x] Superposition
+- [x] Probability
+- [x] Measurement
+- [x] Collapse
+- [x] Observation Log
+- [x] Hadamard, X, Y, Z, S, T gates
+- [x] Phase Visualization
+- [x] Two Qubits
+- [x] Composite States
+- [x] Tensor Products
+- [x] Entanglement
+- [x] Bell States
+- [x] Bell Playground
+- [x] Quantum Teleportation
+- [x] Bell Correlation Lab
+
+## Architecture Overview
+
+Quantum Playground is a client-side single-page application. A quantum state engine maintains the mathematical state of the system (single- and two-qubit state vectors, gate application, measurement); a visualization layer renders that state as interactive 3D geometry and shader-driven effects; and an educational layer sequences the journey, surfaces explanations, and records observations.
+
+```
+Quantum state engine  →  Visualization layer (Three.js / GLSL)  →  Educational journey UI (React)
+```
+
+State changes flow one way: interactions dispatch gate applications or measurements to the engine, and the visualization animates the resulting evolution.
+
+## Technology Stack
+
+| Technology | Role |
+| --- | --- |
+| React | Application UI and educational journey |
+| TypeScript | Type-safe quantum state logic |
+| Three.js | 3D Bloch Sphere and state rendering |
+| GLSL | Custom shaders for phase and state effects |
+| Vite | Development server and build tooling |
 
 ## Local Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/brunhild912/Quantum-Playground.git
+cd Quantum-Playground
+
+# Install dependencies
 npm install
+
+# Start the development server
 npm run dev
+
+# Build for production
+npm run build
 ```
+
+Requires Node.js 18+.
+
+### Regenerating README screenshots
+
+With the dev server running (`npm run dev`):
 
 ```bash
-npm run build
-npm run lint
+npx tsx scripts/capture-readme-shots.mts
 ```
 
-## Project Structure
+Images are written to `docs/images/`.
 
-```
-src/
- ├── components/   # UI, 3D scene, and mission console
- ├── content/      # Observation Log mission content
- ├── hooks/        # React hooks
- ├── lib/          # Math, shaders, starfield, utilities
- ├── state/        # Journey and app state
- └── index.css     # Global styles
-```
+## Roadmap
 
-## Vision
+### Version 1.0 ✅
 
-Quantum mechanics is often presented as something difficult and inaccessible.
+Bloch Sphere · Superposition · Probability · Measurement · Collapse · Observation Log · Hadamard · X · Y · Z · S · T · Phase Visualization · Two Qubits · Composite States · Tensor Products · Entanglement · Bell States · Bell Playground · Quantum Teleportation · Bell Correlation Lab
 
-This project aims to change that by transforming abstract concepts into experiences people can explore, manipulate, and understand visually.
+### Version 1.1 (planned)
+
+- Better experiment analytics
+- Richer Bell-state statistics
+- Export experiment history
+
+### Version 2 (vision)
+
+Transform Quantum Playground from an educational visualizer into an interactive quantum circuit builder, where users can build, animate, replay, and experiment with their own quantum circuits.
+
+## License
+
+MIT
