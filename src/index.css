@@ -948,7 +948,7 @@ line-height:1.2;
 
 .probability-panel-segment {
   flex: 1 1 0;
-  height: 0.38rem;
+  height: 0.5rem;
   min-width: 0;
   border-radius: 0.12rem;
   background: rgba(234, 247, 255, 0.18);
