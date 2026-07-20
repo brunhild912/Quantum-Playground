@@ -1794,6 +1794,11 @@ line-height:1.2;
     max-height: var(--instrument-shelf-top);
   }
 
+  /* Clear Mission 1 / Quantum Playground from Qubit A·B labels */
+  .app-shell--dual .hero-stage > div {
+    top: 1rem;
+  }
+
   .instrument-shelf--dual {
     top: var(--instrument-shelf-top);
     left: 0;
