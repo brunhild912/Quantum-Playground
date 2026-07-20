@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import * as THREE from 'three'
 import { SPHERE_CENTER_Y } from '../lib/sceneConstants'
-import { DUAL_QUBIT_OFFSET_X } from '../lib/qubitId'
+import {
+  DUAL_QUBIT_OFFSET_X,
+  dualQubitOffsetX,
+} from '../lib/qubitId'
 import type { TeleportSceneView } from '../hooks/useTeleportationSequence'
 import { easeInOutCubic } from '../lib/easing'
 import BlochSphere from './BlochSphere'
@@ -19,6 +22,20 @@ const DUAL_CAMERA: [number, number, number] = [0, 0.08, 7.35]
 const TRIPLE_CAMERA: [number, number, number] = [0, 0.08, 8.6]
 const TRIPLE_OFFSET_X = 2.05
 const TRANSITION_MS = 2600
+
+/** Live dual-sphere spacing: desktop 1.55 / tablet 1.25 / mobile 0.9. */
+function useResponsiveDualOffsetX(): number {
+  const [offsetX, setOffsetX] = useState(DUAL_QUBIT_OFFSET_X)
+
+  useEffect(() => {
+    const sync = () => setOffsetX(dualQubitOffsetX(window.innerWidth))
+    sync()
+    window.addEventListener('resize', sync)
+    return () => window.removeEventListener('resize', sync)
+  }, [])
+
+  return offsetX
+}
 
 export type SceneQubitView = {
   id: string
@@ -378,7 +395,6 @@ export default function Scene({
   phaseAngle = 0,
   phasePulse = 0,
   qubits,
-  stackVertical = false,
   entangled = false,
   entanglementBoost = 0,
   teleport = null,
@@ -391,8 +407,6 @@ export default function Scene({
   phasePulse?: number
   /** Level 7A: two independent qubits in the playground. */
   qubits?: SceneQubitView[] | null
-  /** Mobile: stack spheres vertically instead of side-by-side. */
-  stackVertical?: boolean
   /** Level 7D: show a subtle quantum link between the two spheres. */
   entangled?: boolean
   /** Level 7E: brief intensify after Bell preparation (0–1). */
@@ -410,20 +424,17 @@ export default function Scene({
     Array.isArray(qubits) &&
     qubits.length >= 2
 
-  const offsetA = stackVertical
-    ? { x: 0, y: DUAL_QUBIT_OFFSET_X * 0.85 }
-    : { x: -DUAL_QUBIT_OFFSET_X, y: 0 }
-  const offsetB = stackVertical
-    ? { x: 0, y: -DUAL_QUBIT_OFFSET_X * 0.85 }
-    : { x: DUAL_QUBIT_OFFSET_X, y: 0 }
+  const dualOffsetX = useResponsiveDualOffsetX()
+  const tripleOffsetX =
+    (dualOffsetX / DUAL_QUBIT_OFFSET_X) * TRIPLE_OFFSET_X
 
-  const offsetAlice = stackVertical
-    ? { x: 0, y: TRIPLE_OFFSET_X * 1.1 }
-    : { x: -TRIPLE_OFFSET_X, y: 0 }
-  const offsetPair = stackVertical ? { x: 0, y: 0 } : { x: 0, y: 0 }
-  const offsetBob = stackVertical
-    ? { x: 0, y: -TRIPLE_OFFSET_X * 1.1 }
-    : { x: TRIPLE_OFFSET_X, y: 0 }
+  // Always side-by-side; spacing tightens on tablet/mobile.
+  const offsetA = { x: -dualOffsetX, y: 0 }
+  const offsetB = { x: dualOffsetX, y: 0 }
+
+  const offsetAlice = { x: -tripleOffsetX, y: 0 }
+  const offsetPair = { x: 0, y: 0 }
+  const offsetBob = { x: tripleOffsetX, y: 0 }
 
   return (
     <Canvas

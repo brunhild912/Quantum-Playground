@@ -968,7 +968,6 @@ function AppInner() {
         <Scene
           phase={phase}
           qubits={playground && !teleportActive ? sceneQubits : null}
-          stackVertical={mobileLayout}
           entangled={entangled || Boolean(cnotPulse) || bellPrepBusy}
           entanglementBoost={entanglementBoost}
           teleport={teleportActive && teleportScene ? teleportScene : null}
