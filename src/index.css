@@ -1801,9 +1801,10 @@ line-height:1.2;
     bottom: 0;
     position: fixed;
     z-index: 30;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0.75rem;
+    align-items: start;
     align-content: start;
     padding: 1rem 0.75rem calc(1rem + env(safe-area-inset-bottom, 0px));
     overflow-x: hidden;
@@ -1819,14 +1820,9 @@ line-height:1.2;
   }
 
   .instrument-shelf--dual .qubit-instrument {
-    flex-shrink: 0;
+    min-width: 0;
     gap: 0.5rem;
     padding-bottom: 0.35rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .instrument-shelf--dual .qubit-instrument:last-of-type {
-    border-bottom: none;
   }
 
   .instrument-shelf--dual .qubit-instrument .probability-panel {
@@ -1840,6 +1836,19 @@ line-height:1.2;
 
   .instrument-shelf--dual .qubit-instrument .quantum-action-btn {
     min-height: 2.35rem;
+  }
+
+  /* Dense / multi-section panels keep a full row on narrow phones */
+  .instrument-shelf--dual .controlled-ops-panel,
+  .instrument-shelf--dual .bell-prep-panel,
+  .instrument-shelf--dual .bell-corr-lab,
+  .instrument-shelf--dual .instrument-shelf-log {
+    grid-column: 1 / -1;
+  }
+
+  .instrument-shelf--dual .teleport-panel,
+  .instrument-shelf--dual .composite-state-panel {
+    min-width: 0;
   }
 
   .instrument-shelf--dual .instrument-shelf-log {
