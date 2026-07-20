@@ -672,21 +672,6 @@ body {
   }
 }
 
-/* Mobile only: Observation Log mission cards sit in two columns */
-@media (max-width: 767.98px) {
-  .mission-console-window-body .observation-log-body-inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    column-gap: 0.25rem;
-    align-items: start;
-  }
-
-  /* Measurement History stays full-width — denser content */
-  .mission-console-window-body .observation-log-body-inner > .mission-card:last-child {
-    grid-column: 1 / -1;
-  }
-}
-
 .observation-log-meta-row {
   display: flex;
   align-items: baseline;
