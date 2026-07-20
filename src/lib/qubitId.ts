@@ -8,7 +8,7 @@ export function qubitDisplayName(id: QubitId): string {
 /** Horizontal offsets for side-by-side Bloch spheres by breakpoint. */
 export const DUAL_QUBIT_OFFSET_X = 1.55
 export const DUAL_QUBIT_OFFSET_X_TABLET = 1.25
-export const DUAL_QUBIT_OFFSET_X_MOBILE = 0.9
+export const DUAL_QUBIT_OFFSET_X_MOBILE = 1.05
 
 /** Pick dual-sphere X spacing for the current viewport width. */
 export function dualQubitOffsetX(viewportWidth: number): number {
