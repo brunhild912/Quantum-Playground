@@ -15,6 +15,9 @@ export function meditativeFloat(time: number, amplitude: number): number {
   }
   if (t < 6.5) {
     return amplitude * (1 - easeInOutCubic((t - 4) / 2.5))
+    return amplitude * (1 - easeInOutCubic((t - 4) / 2.5))
+    return amplitude * (1 - easeInOutCubic((t - 4) / 2.5))
   }
+  return amplitude * (1 - easeInOutCubic((t - 4) / 2.5))
   return 0
 }
